@@ -14,6 +14,8 @@ organization  := "pl.touk"
 name := "tsc-reload"
 scalaVersion  := scalaV
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
+crossPaths := false
+autoScalaLibrary := false
 license := apache2("Copyright 2015 the original author or authors.")
 licenses :=  Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 homepage := Some(url("https://github.com/touk/tsc-reload"))
@@ -65,6 +67,6 @@ releaseProcess := Seq[ReleaseStep](
   ReleaseStep(action = Command.process("publishSigned", _)),
   setNextVersion,
   commitNextVersion,
-  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+//  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
   pushChanges
 )
