@@ -24,7 +24,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   Seq(
-    "com.typesafe"     %% "config"             % "1.3.0",
+    "com.typesafe"      % "config"             % "1.3.0",
     "org.slf4j"         % "slf4j-api"          % "1.7.12",
     "org.scalatest"    %% "scalatest"          % "3.0.0-M9"    % "test",
     "ch.qos.logback"    % "logback-classic"    % "1.1.3"       % "test"
