@@ -20,9 +20,10 @@ Then you can pass this value to any place in your application. But this value wi
 
 When you use *tsc-config* the same code will look like:
 ```java
-import pl.touk.tscreload.*
+import pl.touk.tscreload.*;
+import java.time.*;
 
-Reloadable<Config> cfg = ReloadableConfigFactory.parseFile("config.conf");
+Reloadable<Config> cfg = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30));
 Reloadable<Integer> configValue = cfg.map(c -> c.getInt("foo.bar"));
 ```
 Then you can also pass value to any place in your application. Value is wrapped in reloadable context. You decide when you want to read current value invoking `configValue.currentValue()`. You can add any transformations to `Reloadable<T>` using `map` method e.g. wrap values with own configuration or use other lib which covert `Config` to something else.
@@ -39,14 +40,14 @@ With maven:
 <dependency>
     <groupId>pl.touk</groupId>
     <artifactId>tsc-reload</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-reload" % "0.0.1"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.1.0"
 ```
 
 ## License
