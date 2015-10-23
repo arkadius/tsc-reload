@@ -38,7 +38,7 @@ With maven:
 ```xml
 <dependency>
     <groupId>pl.touk</groupId>
-    <artifactId>tsc-config</artifactId>
+    <artifactId>tsc-reload</artifactId>
     <version>0.0.1</version>
 </dependency>
 ```
@@ -46,7 +46,7 @@ With maven:
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-config" % "0.0.1"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.0.1"
 ```
 
 ## License
