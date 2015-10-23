@@ -16,21 +16,20 @@ Config cfg = ConfigFactory.parseFile("config.conf");
 int configValue = cfg.getInt("foo.bar");
 ```
 
-Then you can pass this value to any place in your application. But this value won't change even if you change content of *config.conf*.
+Then you can pass this value to any place in your application. But this value will change when you change content of *config.conf*.
 
 When you use *tsc-config* the same code will look like:
 ```java
 import pl.touk.tscreload.*
 
-
 Reloadable<Config> cfg = ReloadableConfigFactory.parseFile("config.conf");
 Reloadable<Integer> configValue = cfg.map(c -> c.getInt("foo.bar"));
 ```
-Then you can also pass value to any place in your application. Value is wrapped in reloadable context. The difference is that when content of *config.conf* will changed, your value will be reloaded. You decide when you want to read current value invoking `configValue.currentValue()`. You can add any transformations to `Reloadable<T>` using `map` method e.g. wrap values with own configuration or use other lib which covert `Config` to something else.
+Then you can also pass value to any place in your application. Value is wrapped in reloadable context. You decide when you want to read current value invoking `configValue.currentValue()`. You can add any transformations to `Reloadable<T>` using `map` method e.g. wrap values with own configuration or use other lib which covert `Config` to something else.
 
 ## Interoperability
 
-This lib is just a thin wrapper for *TypeSafe* config. You still mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus).
+This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus).
 
 ## Usage
 
