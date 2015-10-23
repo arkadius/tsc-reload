@@ -1,8 +1,8 @@
 # tsc-reload
 
-*tsc-reload* is a TypeSafe config wrapper for automatic reloadable configuration
-
 [![Build Status](https://travis-ci.org/TouK/tsc-reload.svg)](https://travis-ci.org/TouK/tsc-reload)
+
+*tsc-reload* is a TypeSafe config wrapper for automatic reloadable configuration
 
 ## Overview
 
