@@ -15,32 +15,36 @@
  */
 package pl.touk.tscreload
 
-import java.io.File
-import java.nio.charset.Charset
-import java.nio.file.{Files, Paths}
+import java.io.{File, PrintWriter}
+import java.time.Duration
 import java.util.function.Function
 
 import com.typesafe.config.Config
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
+import pl.touk.tscreload.impl.ConfigsReloader
 
 class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
 
   it should "reload nested value after change" in {
     Given("configuration file with initial value")
     val configFile = new File("target/foo.conf")
-    def writeValueToConfigFile(value: Int) =
-      Files.write(
-        Paths.get(configFile.toURI),
-        s"""foo {
-            |  bar: $value
-            |}
-            |""".stripMargin.getBytes(Charset.forName("UTF-8"))
-      )
+    def writeValueToConfigFile(value: Int) = {
+      val wrt = new PrintWriter(configFile, "UTF-8")
+      try {
+        wrt.write(
+          s"""foo {
+            | bar: $value
+            |}""".stripMargin)
+      } finally {
+        wrt.flush()
+        wrt.close()
+      }
+    }
     val initialFooBarValue = 1
     writeValueToConfigFile(initialFooBarValue)
 
     When("parse reloadable config file")
-    val reloadable = ReloadableConfigFactory.parseFile(configFile)
+    val reloadable = ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
 
     And("transform reloadable config to return nested value")
     val reloadableFooBar = reloadable.map(new Function[Config, Int] {
@@ -52,9 +56,11 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
 
     When("write new value to config file")
     val nextFooBarValue = 2
+    Thread.sleep(1000) // for make sure that last modified was changed
     writeValueToConfigFile(nextFooBarValue)
 
-    Then("nested value should be same as new value")
+    Then("after reload nested value should be same as new value")
+    Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
     reloadableFooBar.currentValue() shouldEqual nextFooBarValue
   }
 

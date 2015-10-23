@@ -16,32 +16,27 @@
 package pl.touk.tscreload;
 
 import com.typesafe.config.Config;
+import pl.touk.tscreload.impl.ConfigProvider;
 
-import java.io.File;
-import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class Reloadable<T> {
 
-    private List<File> scannedFiles;
-
-    private Supplier<Config> loadConfig;
+    private ConfigProvider configProvider;
 
     private Function<Config, T> transformConfig;
 
-    Reloadable(List<File> scannedFiles, Supplier<Config> loadConfig, Function<Config, T> transformConfig) {
-        this.scannedFiles = scannedFiles;
-        this.loadConfig = loadConfig;
+    public Reloadable(ConfigProvider configProvider, Function<Config, T> transformConfig) {
+        this.configProvider = configProvider;
         this.transformConfig = transformConfig;
     }
 
     public <U> Reloadable<U> map(Function<T, U> f) {
-        return new Reloadable<U>(scannedFiles, loadConfig, transformConfig.andThen(f));
+        return new Reloadable<U>(configProvider, transformConfig.andThen(f));
     }
 
     public T currentValue() {
-        return transformConfig.apply(loadConfig.get());
+        return transformConfig.apply(configProvider.getConfig());
     }
 
 }
