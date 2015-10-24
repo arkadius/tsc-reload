@@ -21,6 +21,7 @@ Then you can pass this value to any place in your application. But this value wi
 When you use *tsc-config* the same code will look like:
 ```java
 import pl.touk.tscreload.*;
+import com.typesafe.config.Config;
 import java.time.*;
 
 Reloadable<Config> cfg = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30));
@@ -30,7 +31,20 @@ Then you can also pass value to any place in your application. Value is wrapped 
 
 ## Interoperability
 
-This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus).
+This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code:
+```scala
+import pl.touk.tscreload._
+import java.time._
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import JFunctionConversions._
+
+case class Foo(bar: Int)
+
+val cfg = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30))
+val reloadableFoo: Reloadable[Foo] = reloadable.map((cfg: Config) => cfg.as[Foo]("foo"))
+val configValue = reloadableFoo.currentValue().bar
+```
 
 ## Usage
 
@@ -40,14 +54,14 @@ With maven:
 <dependency>
     <groupId>pl.touk</groupId>
     <artifactId>tsc-reload</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-reload" % "0.1.0"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.2.0"
 ```
 
 ## License

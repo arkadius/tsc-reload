@@ -19,7 +19,7 @@ import com.typesafe.config.Config;
 
 import java.time.Instant;
 
-public class ConfigWithTimestamps {
+class ConfigWithTimestamps {
 
     private Config config;
 
