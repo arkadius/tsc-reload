@@ -25,34 +25,20 @@ import pl.touk.tscreload.impl.ConfigsReloader
 
 class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
 
-  it should "reload nested value after change" in {
-    Given("configuration file with initial value")
-    val configFile = new File("target/foo.conf")
-    def writeValueToConfigFile(value: Int) = {
-      val wrt = new PrintWriter(configFile, "UTF-8")
-      try {
-        wrt.write(
-          s"""foo {
-            | bar: $value
-            |}""".stripMargin)
-      } finally {
-        wrt.flush()
-        wrt.close()
-      }
-    }
+  val configFile = new File("target/foo.conf")
+  
+  it should "provide initial value" in {
+    When("load reloadable initial value")
     val initialFooBarValue = 1
-    writeValueToConfigFile(initialFooBarValue)
-
-    When("parse reloadable config file")
-    val reloadable = ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
-
-    And("transform reloadable config to return nested value")
-    val reloadableFooBar = reloadable.map(new Function[Config, Int] {
-      override def apply(cfg: Config): Int = cfg.getInt("foo.bar")
-    })
+    val reloadableFooBar = loadReloadableValue(initialFooBarValue)
 
     Then("nested value should be same as initial")
     reloadableFooBar.currentValue() shouldEqual initialFooBarValue
+  }
+
+  it should "reload nested value after change" in {
+    Given("reloadable initial value")
+    val reloadableFooBar = loadReloadableValue(1)
 
     When("write new value to config file")
     val nextFooBarValue = 2
@@ -63,5 +49,54 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
     Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
     reloadableFooBar.currentValue() shouldEqual nextFooBarValue
   }
+  
+  it should "cache evaluation of nested values" in {
+    Given("reloadable initial connfig")
+    val initialFooBarValue = 1
+    val reloadable = loadReloadableConfig(initialFooBarValue)
 
+    When("transform reloadable config to return nested value")
+    var evaluationCount = 0
+    val reloadableFooBar = reloadable.map(new Function[Config, Int] {
+      override def apply(cfg: Config): Int = {
+        evaluationCount += 1
+        cfg.getInt("foo.bar")
+      }
+    })
+
+    And("double get current value")
+    reloadableFooBar.currentValue() shouldEqual initialFooBarValue
+    reloadableFooBar.currentValue() shouldEqual initialFooBarValue
+
+    Then("value should be evaluated once")
+    evaluationCount shouldEqual 1
+  }
+
+  def loadReloadableValue(initialFooBarValue: Int): Reloadable[Int] = {
+    val reloadable = loadReloadableConfig(initialFooBarValue)
+
+    reloadable.map(new Function[Config, Int] {
+      override def apply(cfg: Config): Int = cfg.getInt("foo.bar")
+    })
+  }
+  
+  def loadReloadableConfig(initialFooBarValue: Int): Reloadable[Config] = {
+    writeValueToConfigFile(initialFooBarValue)
+
+    ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
+  }
+
+  def writeValueToConfigFile(value: Int) = {
+    val wrt = new PrintWriter(configFile, "UTF-8")
+    try {
+      wrt.write(
+        s"""foo {
+            | bar: $value
+            |}""".stripMargin)
+    } finally {
+      wrt.flush()
+      wrt.close()
+    }
+  }
+  
 }

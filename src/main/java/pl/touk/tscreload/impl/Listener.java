@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.tscreload;
+package pl.touk.tscreload.impl;
 
-import pl.touk.tscreload.impl.Observable;
-
-import java.util.function.Function;
-
-public abstract class Reloadable<T> extends Observable<T> {
-
-    public abstract <U> Reloadable<U> map(Function<T, U> f);
-
-    public abstract T currentValue();
-
+public interface Listener<T> {
+    void notifyChanged(T changedValue);
 }

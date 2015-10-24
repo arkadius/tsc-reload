@@ -25,7 +25,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public class CachedConfigProvider implements ConfigProvider {
+public class ConfigObservable extends Observable<Config> implements Listener<Instant>, ConfigProvider {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -37,7 +37,7 @@ public class CachedConfigProvider implements ConfigProvider {
 
     private volatile ConfigWithTimestamps configWithTimestamps;
 
-    public CachedConfigProvider(List<File> scannedFiles, ConfigProvider targetProvider, Duration checkInterval) {
+    public ConfigObservable(List<File> scannedFiles, ConfigProvider targetProvider, Duration checkInterval) {
         this.scannedFiles = scannedFiles;
         this.targetProvider = targetProvider;
         this.checkInterval = checkInterval;
@@ -49,7 +49,8 @@ public class CachedConfigProvider implements ConfigProvider {
         return configWithTimestamps.getConfig();
     }
 
-    public void invalidateCacheIfNeed(Instant now) {
+    @Override
+    public void notifyChanged(Instant now) {
         ConfigWithTimestamps current = configWithTimestamps;
         if (now.isAfter(current.getLastCheck().plus(checkInterval))) {
             configWithTimestamps = optionalLastModified()
@@ -59,7 +60,7 @@ public class CachedConfigProvider implements ConfigProvider {
         }
     }
 
-    public Optional<Instant> optionalLastModified() {
+    private Optional<Instant> optionalLastModified() {
         return scannedFiles.stream()
                 .map(File::lastModified)
                 .max(Long::compare)
@@ -69,6 +70,7 @@ public class CachedConfigProvider implements ConfigProvider {
     private ConfigWithTimestamps invalidateCache(Instant lastModified, Instant lastCheck) {
         logger.debug("Found changes. Reloading configuration.");
         Config newValue = targetProvider.getConfig();
+        notifyListeners(newValue);
         return new ConfigWithTimestamps(newValue, lastModified, lastCheck);
     }
 

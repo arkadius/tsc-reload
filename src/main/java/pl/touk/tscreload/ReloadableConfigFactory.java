@@ -17,9 +17,10 @@ package pl.touk.tscreload;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import pl.touk.tscreload.impl.CachedConfigProvider;
+import pl.touk.tscreload.impl.ConfigObservable;
 import pl.touk.tscreload.impl.ConfigProviderImpl;
 import pl.touk.tscreload.impl.ConfigsReloader;
+import pl.touk.tscreload.impl.ReloadableNode;
 
 import java.io.File;
 import java.time.Duration;
@@ -34,16 +35,22 @@ public class ReloadableConfigFactory {
 
     public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
         ConfigProviderImpl configProvider = new ConfigProviderImpl(() -> ConfigFactory.parseFile(file));
-        CachedConfigProvider cached = new CachedConfigProvider(Collections.singletonList(file), configProvider, checkInterval);
-        reloader.add(cached);
-        return new Reloadable<>(cached, Function.identity());
+        return createReloadableRoot(Collections.singletonList(file), checkInterval, configProvider);
     }
 
     public static Reloadable<Config> load(List<File> scannedFiles, Supplier<Config> loadConfig, Duration checkInterval) {
         ConfigProviderImpl configProvider = new ConfigProviderImpl(loadConfig);
-        CachedConfigProvider cached = new CachedConfigProvider(scannedFiles, configProvider, checkInterval);
+        return createReloadableRoot(scannedFiles, checkInterval, configProvider);
+    }
+
+    private static Reloadable<Config> createReloadableRoot(List<File> scannedFiles,
+                                                           Duration checkInterval,
+                                                           ConfigProviderImpl configProvider) {
+        ConfigObservable cached = new ConfigObservable(scannedFiles, configProvider, checkInterval);
+        ReloadableNode<Config, Config> reloadableRoot = new ReloadableNode<>(cached.getConfig(), Function.identity());
+        cached.addWeakListener(reloadableRoot);
         reloader.add(cached);
-        return new Reloadable<>(cached, Function.identity());
+        return reloadableRoot;
     }
 
 }

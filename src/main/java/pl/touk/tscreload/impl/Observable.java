@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.tscreload;
+package pl.touk.tscreload.impl;
 
-import pl.touk.tscreload.impl.Observable;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
-import java.util.function.Function;
+public abstract class Observable<T> {
 
-public abstract class Reloadable<T> extends Observable<T> {
+    private final Set<Listener<T>> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 
-    public abstract <U> Reloadable<U> map(Function<T, U> f);
+    public void addWeakListener(Listener<T> listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
+    }
 
-    public abstract T currentValue();
+    protected void notifyListeners(T changedValue) {
+        synchronized (listeners) {
+            listeners.forEach(l -> l.notifyChanged(changedValue));
+        }
+    }
 
 }
