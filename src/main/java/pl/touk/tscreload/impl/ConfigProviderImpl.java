@@ -16,16 +16,14 @@
 package pl.touk.tscreload.impl;
 
 import com.typesafe.config.Config;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.Supplier;
 
+@RequiredArgsConstructor
 public class ConfigProviderImpl implements ConfigProvider {
 
-    private Supplier<Config> loadConfig;
-
-    public ConfigProviderImpl(Supplier<Config> loadConfig) {
-        this.loadConfig = loadConfig;
-    }
+    private final Supplier<Config> loadConfig;
 
     @Override
     public Config getConfig() {
