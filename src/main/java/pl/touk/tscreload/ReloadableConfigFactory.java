@@ -31,7 +31,9 @@ import java.util.function.Supplier;
 
 public class ReloadableConfigFactory {
 
-    private static ConfigsReloader reloader = new ConfigsReloader(1); // tick: 1 second
+    private static final int TICK_DELAY_SECONDS = 1;
+
+    private static ConfigsReloader reloader = new ConfigsReloader(TICK_DELAY_SECONDS);
 
     public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
         ConfigProviderImpl configProvider = new ConfigProviderImpl(() -> ConfigFactory.parseFile(file));

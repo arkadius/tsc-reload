@@ -16,16 +16,18 @@
 package pl.touk.tscreload.impl;
 
 import com.typesafe.config.Config;
+import lombok.Getter;
 
 import java.time.Instant;
 
+@Getter
 class ConfigWithTimestamps {
 
-    private Config config;
+    private final Config config;
 
-    private Instant lastModified;
+    private final Instant lastModified;
 
-    private Instant lastCheck;
+    private final Instant lastCheck;
 
     public ConfigWithTimestamps(Config config, Instant lastModified, Instant lastCheck) {
         this.config = config;
@@ -35,17 +37,5 @@ class ConfigWithTimestamps {
 
     public ConfigWithTimestamps withLastCheck(Instant newLastCheck) {
         return new ConfigWithTimestamps(config, lastModified, newLastCheck);
-    }
-
-    public Config getConfig() {
-        return config;
-    }
-
-    public Instant getLastModified() {
-        return lastModified;
-    }
-
-    public Instant getLastCheck() {
-        return lastCheck;
     }
 }

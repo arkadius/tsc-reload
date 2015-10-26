@@ -16,8 +16,7 @@
 package pl.touk.tscreload.impl;
 
 import com.typesafe.config.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.time.Duration;
@@ -25,15 +24,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class ConfigObservable extends Observable<Config> implements Listener<Instant>, ConfigProvider {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final List<File> scannedFiles;
 
-    private List<File> scannedFiles;
+    private final ConfigProvider targetProvider;
 
-    private ConfigProvider targetProvider;
-
-    private Duration checkInterval;
+    private final Duration checkInterval;
 
     private volatile ConfigWithTimestamps configWithTimestamps;
 
@@ -68,7 +66,7 @@ public class ConfigObservable extends Observable<Config> implements Listener<Ins
     }
 
     private ConfigWithTimestamps invalidateCache(Instant lastModified, Instant lastCheck) {
-        logger.debug("Found changes. Reloading configuration.");
+        log.debug("Found changes. Reloading configuration.");
         Config newValue = targetProvider.getConfig();
         notifyListeners(newValue);
         return new ConfigWithTimestamps(newValue, lastModified, lastCheck);

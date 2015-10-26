@@ -21,7 +21,7 @@ import java.util.function.Function;
 
 public class ReloadableNode<P, C> extends Reloadable<C> implements Listener<P> {
 
-    private Function<P, C> transform;
+    private final Function<P, C> transform;
 
     private volatile C current;
 
