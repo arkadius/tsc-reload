@@ -24,7 +24,7 @@ import net.ceedubs.ficus.readers.ArbitraryTypeReader
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import pl.touk.tscreload.impl.ConfigsReloader
 
-class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
+class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
   import JFunctionConversions._
   import Ficus._
   import ArbitraryTypeReader._
@@ -53,7 +53,34 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen{
     Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
     reloadableFooBar.currentValue() shouldEqual nextFooBarValue
   }
-  
+
+  it should "reload composed value after change" in {
+    Given("reloadable initial values")
+    val initialBase = 0
+    val leftDelta = 1
+    val rightDelta = 2
+    val reloadable = loadReloadableConfig(initialBase)
+
+    val left = reloadable.map((cfg: Config) => cfg.getInt("foo.bar") + leftDelta)
+    val right = reloadable.map((cfg: Config) => cfg.getInt("foo.bar") + rightDelta)
+
+    When("compose")
+    val reloadableComposed = Reloadable.compose(left, right, (l: Int, r: Int) => l + r)
+
+    Then("should compote initial sum")
+    reloadableComposed.currentValue() shouldEqual (initialBase + leftDelta + initialBase + rightDelta)
+
+
+    When("write new value to config file")
+    val newBase = 2
+    Thread.sleep(1000) // for make sure that last modified was changed
+    writeValueToConfigFile(newBase)
+
+    Then("after reload composed value should be recalculated")
+    Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
+    reloadableComposed.currentValue() shouldEqual (newBase + leftDelta + newBase + rightDelta)
+  }
+
   it should "cache evaluation of nested values" in {
     Given("reloadable initial config")
     val initialFooBarValue = 1

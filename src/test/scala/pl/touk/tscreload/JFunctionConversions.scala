@@ -15,12 +15,18 @@
  */
 package pl.touk.tscreload
 
+import javaslang.{Function2 => JFunction2}
+import java.util.function.{Function => JFunction}
+
 import scala.language.implicitConversions
 
 object JFunctionConversions {
-  import java.util.function.{Function => JFunction}
 
   implicit def toJavaFunction[A, B](f: Function1[A, B]): JFunction[A, B] = new JFunction[A, B] {
     override def apply(a: A): B = f(a)
+  }
+
+  implicit def toJavaBiFunction[L, R, T](f: Function2[L, R, T]): JFunction2[L, R, T] = new JFunction2[L, R, T] {
+    override def apply(l: L, r: R): T = f(l, r)
   }
 }

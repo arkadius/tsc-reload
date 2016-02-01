@@ -15,38 +15,20 @@
  */
 package pl.touk.tscreload.impl;
 
-import pl.touk.tscreload.Reloadable;
-
 import java.util.function.Function;
 
-public class ReloadableNode<P, C> extends Reloadable<C> implements Listener<P> {
+public class ReloadableNode1<P, C> extends AbstractReloadableNode<C> implements Listener<P> {
 
     private final Function<P, C> transform;
 
-    private volatile C current;
-
-    public ReloadableNode(P currentParentValue, Function<P, C> transform) {
+    public ReloadableNode1(P currentParentValue, Function<P, C> transform) {
+        super(transform.apply(currentParentValue));
         this.transform = transform;
-        this.current = transform.apply(currentParentValue);
     }
 
     @Override
     public void notifyChanged(P changedParentValue) {
-        C newValue = transform.apply(changedParentValue);
-        current = newValue;
-        notifyListeners(newValue);
-    }
-
-    @Override
-    public <U> ReloadableNode<C, U> map(Function<C, U> f) {
-        ReloadableNode<C, U> child = new ReloadableNode<>(current, f);
-        addWeakListener(child);
-        return child;
-    }
-
-    @Override
-    public C currentValue() {
-        return current;
+        updateCurrentValue(transform.apply(changedParentValue));
     }
 
 }

@@ -20,7 +20,7 @@ import com.typesafe.config.ConfigFactory;
 import pl.touk.tscreload.impl.ConfigObservable;
 import pl.touk.tscreload.impl.ConfigProviderImpl;
 import pl.touk.tscreload.impl.ConfigsReloader;
-import pl.touk.tscreload.impl.ReloadableNode;
+import pl.touk.tscreload.impl.ReloadableNode1;
 
 import java.io.File;
 import java.time.Duration;
@@ -49,7 +49,7 @@ public class ReloadableConfigFactory {
                                                            Duration checkInterval,
                                                            ConfigProviderImpl configProvider) {
         ConfigObservable cached = new ConfigObservable(scannedFiles, configProvider, checkInterval);
-        ReloadableNode<Config, Config> reloadableRoot = new ReloadableNode<>(cached.getConfig(), Function.identity());
+        ReloadableNode1<Config, Config> reloadableRoot = new ReloadableNode1<>(cached.getConfig(), Function.identity());
         cached.addWeakListener(reloadableRoot);
         reloader.add(cached);
         return reloadableRoot;

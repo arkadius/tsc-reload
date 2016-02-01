@@ -21,17 +21,19 @@ licenses :=  Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.t
 homepage := Some(url("https://github.com/touk/tsc-reload"))
 removeExistingHeaderBlock := true
 resolvers ++= Seq(
-  "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+  "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
+  Resolver.jcenterRepo
 )
 
 libraryDependencies ++= {
   Seq(
     "com.typesafe"      % "config"            % "1.3.0",
+    "com.javaslang"     % "javaslang"         % "2.0.0-RC3",
     "org.slf4j"         % "slf4j-api"         % "1.7.12",
     "org.projectlombok" % "lombok"            % "1.16.6"      % "provided",
     "org.scalatest"    %% "scalatest"         % "3.0.0-M9"    % "test",
     "ch.qos.logback"    % "logback-classic"   % "1.1.3"       % "test",
-    "net.ceedubs"      %% "ficus"             % "1.1.2"       % "test"
+    "com.iheart"       %% "ficus"             % "1.2.1"       % "test"
   )
 }
 
