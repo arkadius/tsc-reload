@@ -15,11 +15,12 @@
  */
 package pl.touk.tscreload.impl;
 
-import javaslang.Function4;
+import javaslang.Function5;
+import pl.touk.tscreload.Reloadable;
 
-public class ReloadableNode4<P1, P2, P3, P4, C> extends AbstractReloadableNode<C> {
+public class Reloadable5<P1, P2, P3, P4, P5, C> extends Reloadable<C> {
 
-    private final Function4<P1, P2, P3, P4, C> transform;
+    private final Function5<P1, P2, P3, P4, P5, C> transform;
 
     private P1 currentParentValue1;
 
@@ -29,29 +30,39 @@ public class ReloadableNode4<P1, P2, P3, P4, C> extends AbstractReloadableNode<C
 
     private P4 currentParentValue4;
 
-    public ReloadableNode4(P1 currentParentValue1,
-                           P2 currentParentValue2,
-                           P3 currentParentValue3,
-                           P4 currentParentValue4,
-                           Function4<P1, P2, P3, P4, C> transform) {
-        super(transform.apply(currentParentValue1, currentParentValue2, currentParentValue3, currentParentValue4));
+    private P5 currentParentValue5;
+
+    public Reloadable5(P1 currentParentValue1,
+                       P2 currentParentValue2,
+                       P3 currentParentValue3,
+                       P4 currentParentValue4,
+                       P5 currentParentValue5,
+                       Function5<P1, P2, P3, P4, P5, C> transform) {
+        super(transform.apply(
+                currentParentValue1,
+                currentParentValue2,
+                currentParentValue3,
+                currentParentValue4,
+                currentParentValue5));
         this.transform = transform;
         this.currentParentValue1 = currentParentValue1;
         this.currentParentValue2 = currentParentValue2;
         this.currentParentValue3 = currentParentValue3;
         this.currentParentValue4 = currentParentValue4;
+        this.currentParentValue5 = currentParentValue5;
     }
 
     public Observer<P1> observer1 = new Observer<P1>() {
         @Override
         public void notifyChanged(P1 changedValue1) {
-            synchronized (ReloadableNode4.this) {
+            synchronized (Reloadable5.this) {
                 currentParentValue1 = changedValue1;
                 updateCurrentValue(transform.apply(
                         currentParentValue1,
                         currentParentValue2,
                         currentParentValue3,
-                        currentParentValue4));
+                        currentParentValue4,
+                        currentParentValue5));
             }
         }
     };
@@ -59,13 +70,14 @@ public class ReloadableNode4<P1, P2, P3, P4, C> extends AbstractReloadableNode<C
     public Observer<P2> observer2 = new Observer<P2>() {
         @Override
         public void notifyChanged(P2 changedValue2) {
-            synchronized (ReloadableNode4.this) {
+            synchronized (Reloadable5.this) {
                 currentParentValue2 = changedValue2;
                 updateCurrentValue(transform.apply(
                         currentParentValue1,
                         currentParentValue2,
                         currentParentValue3,
-                        currentParentValue4));
+                        currentParentValue4,
+                        currentParentValue5));
             }
         }
     };
@@ -73,13 +85,14 @@ public class ReloadableNode4<P1, P2, P3, P4, C> extends AbstractReloadableNode<C
     public Observer<P3> observer3 = new Observer<P3>() {
         @Override
         public void notifyChanged(P3 changedValue3) {
-            synchronized (ReloadableNode4.this) {
+            synchronized (Reloadable5.this) {
                 currentParentValue3 = changedValue3;
                 updateCurrentValue(transform.apply(
                         currentParentValue1,
                         currentParentValue2,
                         currentParentValue3,
-                        currentParentValue4));
+                        currentParentValue4,
+                        currentParentValue5));
             }
         }
     };
@@ -87,13 +100,29 @@ public class ReloadableNode4<P1, P2, P3, P4, C> extends AbstractReloadableNode<C
     public Observer<P4> observer4 = new Observer<P4>() {
         @Override
         public void notifyChanged(P4 changedValue4) {
-            synchronized (ReloadableNode4.this) {
+            synchronized (Reloadable5.this) {
                 currentParentValue4 = changedValue4;
                 updateCurrentValue(transform.apply(
                         currentParentValue1,
                         currentParentValue2,
                         currentParentValue3,
-                        currentParentValue4));
+                        currentParentValue4,
+                        currentParentValue5));
+            }
+        }
+    };
+
+    public Observer<P5> observer5 = new Observer<P5>() {
+        @Override
+        public void notifyChanged(P5 changedValue5) {
+            synchronized (Reloadable5.this) {
+                currentParentValue5 = changedValue5;
+                updateCurrentValue(transform.apply(
+                        currentParentValue1,
+                        currentParentValue2,
+                        currentParentValue3,
+                        currentParentValue4,
+                        currentParentValue5));
             }
         }
     };

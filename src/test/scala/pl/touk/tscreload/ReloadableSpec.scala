@@ -100,6 +100,27 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     evaluationCount shouldEqual 1
   }
 
+  it should "not reload nested value if was no changes in value" in {
+    Given("reloadable initial value")
+    val initialValue = 1
+    val reloadable = loadReloadableConfig(initialValue)
+
+    When("transform reloadable config to return nested value")
+    var evaluationCount = 0
+    val reloadableFooBar = reloadable.map { (cfg: Config) =>
+      evaluationCount += 1
+      cfg.getInt("foo.bar")
+    }
+
+    When("write the same value to config file")
+    Thread.sleep(1000) // for make sure that last modified was changed
+    writeValueToConfigFile(initialValue)
+
+    Then("after reload nested value should be same as new value")
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
+    evaluationCount shouldEqual 1
+  }
+
   it should "cooperate with ficus" in {
     Given("reloadable initial config")
     val initialFooBarValue = 1

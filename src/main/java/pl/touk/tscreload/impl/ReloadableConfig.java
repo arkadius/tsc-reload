@@ -17,6 +17,7 @@ package pl.touk.tscreload.impl;
 
 import com.typesafe.config.Config;
 import lombok.extern.slf4j.Slf4j;
+import pl.touk.tscreload.Reloadable;
 
 import java.io.File;
 import java.time.Duration;
@@ -26,7 +27,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public class ConfigObservable extends AbstractReloadableNode<Config> implements Observer<Instant> {
+public class ReloadableConfig extends Reloadable<Config> implements Observer<Instant> {
 
     private final List<File> scannedFiles;
 
@@ -36,7 +37,7 @@ public class ConfigObservable extends AbstractReloadableNode<Config> implements 
 
     private volatile ConfigWithTimestamps configWithTimestamps;
 
-    public ConfigObservable(List<File> scannedFiles, Duration checkInterval, Supplier<Config> configSupplier) {
+    public ReloadableConfig(List<File> scannedFiles, Duration checkInterval, Supplier<Config> configSupplier) {
         super(configSupplier.get());
         this.scannedFiles = scannedFiles;
         this.checkInterval = checkInterval;

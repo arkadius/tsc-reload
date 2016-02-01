@@ -25,14 +25,33 @@ import java.util.function.Function;
 
 public abstract class Reloadable<T> extends Observable<T> {
 
-    public abstract <U> Reloadable<U> map(Function<T, U> f);
+    private T current;
 
-    public abstract T currentValue();
+    protected Reloadable(T current) {
+        this.current = current;
+    }
+
+    public <U> Reloadable<U> map(Function<T, U> f) {
+        Reloadable1<T, U> child = new Reloadable1<>(currentValue(), f);
+        addWeakObserver(child);
+        return child;
+    }
+
+    protected synchronized void updateCurrentValue(T newValue) {
+        if (!current.equals(newValue)) {
+            current = newValue;
+            notifyObservers(newValue);
+        }
+    }
+
+    public synchronized T currentValue() {
+        return current;
+    }
 
     public static <R1, R2, U> Reloadable<U> compose(Reloadable<R1> r1,
                                                     Reloadable<R2> r2,
                                                     Function2<R1, R2, U> f) {
-        ReloadableNode2<R1, R2, U> reloadable = new ReloadableNode2<>(
+        Reloadable2<R1, R2, U> reloadable = new Reloadable2<>(
                 r1.currentValue(),
                 r2.currentValue(),
                 f);
@@ -45,7 +64,7 @@ public abstract class Reloadable<T> extends Observable<T> {
                                                         Reloadable<R2> r2,
                                                         Reloadable<R3> r3,
                                                         Function3<R1, R2, R3, U> f) {
-        ReloadableNode3<R1, R2, R3, U> reloadable = new ReloadableNode3<>(
+        Reloadable3<R1, R2, R3, U> reloadable = new Reloadable3<>(
                 r1.currentValue(),
                 r2.currentValue(),
                 r3.currentValue(),
@@ -61,7 +80,7 @@ public abstract class Reloadable<T> extends Observable<T> {
                                                             Reloadable<R3> r3,
                                                             Reloadable<R4> r4,
                                                             Function4<R1, R2, R3, R4, U> f) {
-        ReloadableNode4<R1, R2, R3, R4, U> reloadable = new ReloadableNode4<>(
+        Reloadable4<R1, R2, R3, R4, U> reloadable = new Reloadable4<>(
                 r1.currentValue(),
                 r2.currentValue(),
                 r3.currentValue(),
@@ -80,7 +99,7 @@ public abstract class Reloadable<T> extends Observable<T> {
                                                                 Reloadable<R4> r4,
                                                                 Reloadable<R5> r5,
                                                                 Function5<R1, R2, R3, R4, R5, U> f) {
-        ReloadableNode5<R1, R2, R3, R4, R5, U> reloadable = new ReloadableNode5<>(
+        Reloadable5<R1, R2, R3, R4, R5, U> reloadable = new Reloadable5<>(
                 r1.currentValue(),
                 r2.currentValue(),
                 r3.currentValue(),

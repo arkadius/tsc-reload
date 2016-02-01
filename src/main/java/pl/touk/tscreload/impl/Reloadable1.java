@@ -15,13 +15,15 @@
  */
 package pl.touk.tscreload.impl;
 
+import pl.touk.tscreload.Reloadable;
+
 import java.util.function.Function;
 
-public class ReloadableNode1<P, C> extends AbstractReloadableNode<C> implements Observer<P> {
+public class Reloadable1<P, C> extends Reloadable<C> implements Observer<P> {
 
     private final Function<P, C> transform;
 
-    public ReloadableNode1(P currentParentValue, Function<P, C> transform) {
+    public Reloadable1(P currentParentValue, Function<P, C> transform) {
         super(transform.apply(currentParentValue));
         this.transform = transform;
     }

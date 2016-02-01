@@ -16,8 +16,9 @@
 package pl.touk.tscreload.impl;
 
 import javaslang.Function2;
+import pl.touk.tscreload.Reloadable;
 
-public class ReloadableNode2<P1, P2, C> extends AbstractReloadableNode<C> {
+public class Reloadable2<P1, P2, C> extends Reloadable<C> {
 
     private final Function2<P1, P2, C> transform;
 
@@ -25,9 +26,9 @@ public class ReloadableNode2<P1, P2, C> extends AbstractReloadableNode<C> {
 
     private P2 currentParentValue2;
 
-    public ReloadableNode2(P1 currentParentValue1,
-                           P2 currentParentValue2,
-                           Function2<P1, P2, C> transform) {
+    public Reloadable2(P1 currentParentValue1,
+                       P2 currentParentValue2,
+                       Function2<P1, P2, C> transform) {
         super(transform.apply(currentParentValue1, currentParentValue2));
         this.transform = transform;
         this.currentParentValue1 = currentParentValue1;
@@ -37,7 +38,7 @@ public class ReloadableNode2<P1, P2, C> extends AbstractReloadableNode<C> {
     public Observer<P1> observer1 = new Observer<P1>() {
         @Override
         public void notifyChanged(P1 changedValue1) {
-            synchronized (ReloadableNode2.this) {
+            synchronized (Reloadable2.this) {
                 currentParentValue1 = changedValue1;
                 updateCurrentValue(transform.apply(currentParentValue1, currentParentValue2));;
             }
@@ -47,7 +48,7 @@ public class ReloadableNode2<P1, P2, C> extends AbstractReloadableNode<C> {
     public Observer<P2> observer2 = new Observer<P2>() {
         @Override
         public void notifyChanged(P2 changedValue2) {
-            synchronized (ReloadableNode2.this) {
+            synchronized (Reloadable2.this) {
                 currentParentValue2 = changedValue2;
                 updateCurrentValue(transform.apply(currentParentValue1, currentParentValue2));;
             }

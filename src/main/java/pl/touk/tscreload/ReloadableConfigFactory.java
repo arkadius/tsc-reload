@@ -17,7 +17,7 @@ package pl.touk.tscreload;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import pl.touk.tscreload.impl.ConfigObservable;
+import pl.touk.tscreload.impl.ReloadableConfig;
 import pl.touk.tscreload.impl.ConfigsReloader;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class ReloadableConfigFactory {
     public static Reloadable<Config> load(List<File> scannedFiles,
                                           Duration checkInterval,
                                           Supplier<Config> loadConfig) {
-        ConfigObservable reloadableConfig = new ConfigObservable(scannedFiles, checkInterval, loadConfig);
+        ReloadableConfig reloadableConfig = new ReloadableConfig(scannedFiles, checkInterval, loadConfig);
         reloader.addWeakObserver(reloadableConfig);
         return reloadableConfig;
     }
