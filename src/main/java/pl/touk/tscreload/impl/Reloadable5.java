@@ -15,12 +15,14 @@
  */
 package pl.touk.tscreload.impl;
 
-import javaslang.Function5;
+import javaslang.Function6;
 import pl.touk.tscreload.Reloadable;
+
+import java.util.Optional;
 
 public class Reloadable5<P1, P2, P3, P4, P5, C> extends Reloadable<C> {
 
-    private final Function5<P1, P2, P3, P4, P5, C> transform;
+    private final Function6<P1, P2, P3, P4, P5, Optional<C>, C> transform;
 
     private P1 currentParentValue1;
 
@@ -37,13 +39,14 @@ public class Reloadable5<P1, P2, P3, P4, P5, C> extends Reloadable<C> {
                        P3 currentParentValue3,
                        P4 currentParentValue4,
                        P5 currentParentValue5,
-                       Function5<P1, P2, P3, P4, P5, C> transform) {
+                       Function6<P1, P2, P3, P4, P5, Optional<C>, C> transform) {
         super(transform.apply(
                 currentParentValue1,
                 currentParentValue2,
                 currentParentValue3,
                 currentParentValue4,
-                currentParentValue5));
+                currentParentValue5,
+                Optional.empty()));
         this.transform = transform;
         this.currentParentValue1 = currentParentValue1;
         this.currentParentValue2 = currentParentValue2;
@@ -55,75 +58,56 @@ public class Reloadable5<P1, P2, P3, P4, P5, C> extends Reloadable<C> {
     public Observer<P1> observer1 = new Observer<P1>() {
         @Override
         public void notifyChanged(P1 changedValue1) {
-            synchronized (Reloadable5.this) {
+            updateCurrentValue(prev -> {
+                C newValue = transform.apply(changedValue1, currentParentValue2, currentParentValue3, currentParentValue4, currentParentValue5, prev);
                 currentParentValue1 = changedValue1;
-                updateCurrentValue(transform.apply(
-                        currentParentValue1,
-                        currentParentValue2,
-                        currentParentValue3,
-                        currentParentValue4,
-                        currentParentValue5));
-            }
+                return newValue;
+            });
         }
     };
+
 
     public Observer<P2> observer2 = new Observer<P2>() {
         @Override
         public void notifyChanged(P2 changedValue2) {
-            synchronized (Reloadable5.this) {
+            updateCurrentValue(prev -> {
+                C newValue = transform.apply(currentParentValue1, changedValue2, currentParentValue3, currentParentValue4, currentParentValue5, prev);
                 currentParentValue2 = changedValue2;
-                updateCurrentValue(transform.apply(
-                        currentParentValue1,
-                        currentParentValue2,
-                        currentParentValue3,
-                        currentParentValue4,
-                        currentParentValue5));
-            }
+                return newValue;
+            });
         }
     };
 
     public Observer<P3> observer3 = new Observer<P3>() {
         @Override
         public void notifyChanged(P3 changedValue3) {
-            synchronized (Reloadable5.this) {
+            updateCurrentValue(prev -> {
+                C newValue = transform.apply(currentParentValue1, currentParentValue2, changedValue3, currentParentValue4, currentParentValue5, prev);
                 currentParentValue3 = changedValue3;
-                updateCurrentValue(transform.apply(
-                        currentParentValue1,
-                        currentParentValue2,
-                        currentParentValue3,
-                        currentParentValue4,
-                        currentParentValue5));
-            }
+                return newValue;
+            });
         }
     };
 
     public Observer<P4> observer4 = new Observer<P4>() {
         @Override
         public void notifyChanged(P4 changedValue4) {
-            synchronized (Reloadable5.this) {
+            updateCurrentValue(prev -> {
+                C newValue = transform.apply(currentParentValue1, currentParentValue2, currentParentValue3, changedValue4, currentParentValue5, prev);
                 currentParentValue4 = changedValue4;
-                updateCurrentValue(transform.apply(
-                        currentParentValue1,
-                        currentParentValue2,
-                        currentParentValue3,
-                        currentParentValue4,
-                        currentParentValue5));
-            }
+                return newValue;
+            });
         }
     };
 
     public Observer<P5> observer5 = new Observer<P5>() {
         @Override
         public void notifyChanged(P5 changedValue5) {
-            synchronized (Reloadable5.this) {
+            updateCurrentValue(prev -> {
+                C newValue = transform.apply(currentParentValue1, currentParentValue2, currentParentValue3, currentParentValue4, changedValue5, prev);
                 currentParentValue5 = changedValue5;
-                updateCurrentValue(transform.apply(
-                        currentParentValue1,
-                        currentParentValue2,
-                        currentParentValue3,
-                        currentParentValue4,
-                        currentParentValue5));
-            }
+                return newValue;
+            });
         }
     };
 

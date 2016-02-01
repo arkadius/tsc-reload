@@ -15,15 +15,16 @@
  */
 package pl.touk.tscreload;
 
-import javaslang.Function2;
-import javaslang.Function3;
-import javaslang.Function4;
-import javaslang.Function5;
+import javaslang.*;
+import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.impl.*;
 
-import java.util.function.Function;
+import java.util.Optional;
 
+@Slf4j
 public abstract class Reloadable<T> extends Observable<T> {
+
+    private Optional<T> previous = Optional.empty();
 
     private T current;
 
@@ -31,16 +32,26 @@ public abstract class Reloadable<T> extends Observable<T> {
         this.current = current;
     }
 
-    public <U> Reloadable<U> map(Function<T, U> f) {
+    public <U> Reloadable<U> map(Function1<T, U> f) {
+        return map((t, prev) -> f.apply(t));
+    }
+
+    public <U> Reloadable<U> map(Function2<T, Optional<U>, U> f) {
         Reloadable1<T, U> child = new Reloadable1<>(currentValue(), f);
         addWeakObserver(child);
         return child;
     }
 
-    protected synchronized void updateCurrentValue(T newValue) {
-        if (!current.equals(newValue)) {
-            current = newValue;
-            notifyObservers(newValue);
+    protected synchronized void updateCurrentValue(Function1<Optional<T>, T> transform) {
+        try {
+            T newValue = transform.apply(previous);
+            if (!current.equals(newValue)) {
+                previous = Optional.of(current);
+                current = newValue;
+                notifyObservers(newValue);
+            }
+        } catch (Exception ex) {
+            log.error("Exception while computing reloaded value. Propagation of changes for child nodes will be discarded.", ex);
         }
     }
 
@@ -48,9 +59,16 @@ public abstract class Reloadable<T> extends Observable<T> {
         return current;
     }
 
+
     public static <R1, R2, U> Reloadable<U> compose(Reloadable<R1> r1,
                                                     Reloadable<R2> r2,
                                                     Function2<R1, R2, U> f) {
+        return compose(r1, r2, (p1, p2, prev) -> f.apply(p1, p2));
+    }
+
+    public static <R1, R2, U> Reloadable<U> compose(Reloadable<R1> r1,
+                                                    Reloadable<R2> r2,
+                                                    Function3<R1, R2, Optional<U>, U> f) {
         Reloadable2<R1, R2, U> reloadable = new Reloadable2<>(
                 r1.currentValue(),
                 r2.currentValue(),
@@ -64,6 +82,13 @@ public abstract class Reloadable<T> extends Observable<T> {
                                                         Reloadable<R2> r2,
                                                         Reloadable<R3> r3,
                                                         Function3<R1, R2, R3, U> f) {
+        return compose(r1, r2, r3, (p1, p2, p3, prev) -> f.apply(p1, p2, p3));
+    }
+
+    public static <R1, R2, R3, U> Reloadable<U> compose(Reloadable<R1> r1,
+                                                        Reloadable<R2> r2,
+                                                        Reloadable<R3> r3,
+                                                        Function4<R1, R2, R3, Optional<U>, U> f) {
         Reloadable3<R1, R2, R3, U> reloadable = new Reloadable3<>(
                 r1.currentValue(),
                 r2.currentValue(),
@@ -75,11 +100,20 @@ public abstract class Reloadable<T> extends Observable<T> {
         return reloadable;
     }
 
+
     public static <R1, R2, R3, R4, U> Reloadable<U> compose(Reloadable<R1> r1,
                                                             Reloadable<R2> r2,
                                                             Reloadable<R3> r3,
                                                             Reloadable<R4> r4,
                                                             Function4<R1, R2, R3, R4, U> f) {
+        return compose(r1, r2, r3, r4, (p1, p2, p3, p4, prev) -> f.apply(p1, p2, p3, p4));
+    }
+
+    public static <R1, R2, R3, R4, U> Reloadable<U> compose(Reloadable<R1> r1,
+                                                            Reloadable<R2> r2,
+                                                            Reloadable<R3> r3,
+                                                            Reloadable<R4> r4,
+                                                            Function5<R1, R2, R3, R4, Optional<U>, U> f) {
         Reloadable4<R1, R2, R3, R4, U> reloadable = new Reloadable4<>(
                 r1.currentValue(),
                 r2.currentValue(),
@@ -99,6 +133,15 @@ public abstract class Reloadable<T> extends Observable<T> {
                                                                 Reloadable<R4> r4,
                                                                 Reloadable<R5> r5,
                                                                 Function5<R1, R2, R3, R4, R5, U> f) {
+        return compose(r1, r2, r3, r4, r5, (p1, p2, p3, p4, p5, prev) -> f.apply(p1, p2, p3, p4, p5));
+    }
+
+    public static <R1, R2, R3, R4, R5, U> Reloadable<U> compose(Reloadable<R1> r1,
+                                                                Reloadable<R2> r2,
+                                                                Reloadable<R3> r3,
+                                                                Reloadable<R4> r4,
+                                                                Reloadable<R5> r5,
+                                                                Function6<R1, R2, R3, R4, R5, Optional<U>, U> f) {
         Reloadable5<R1, R2, R3, R4, R5, U> reloadable = new Reloadable5<>(
                 r1.currentValue(),
                 r2.currentValue(),

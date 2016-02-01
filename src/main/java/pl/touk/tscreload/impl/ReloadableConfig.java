@@ -68,9 +68,11 @@ public class ReloadableConfig extends Reloadable<Config> implements Observer<Ins
 
     private Void invalidateCache(Instant lastModified, Instant lastCheck) {
         log.debug("Found changes. Reloading configuration.");
-        Config newValue = configSupplier.get();
-        configWithTimestamps = new ConfigWithTimestamps(newValue, lastModified, lastCheck);
-        updateCurrentValue(newValue);
+        updateCurrentValue(prev -> {
+            Config newValue = configSupplier.get();
+            configWithTimestamps = new ConfigWithTimestamps(newValue, lastModified, lastCheck);
+            return newValue;
+        });
         return null;
     }
 

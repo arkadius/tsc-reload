@@ -15,16 +15,17 @@
  */
 package pl.touk.tscreload.impl;
 
+import javaslang.Function2;
 import pl.touk.tscreload.Reloadable;
 
-import java.util.function.Function;
+import java.util.Optional;
 
 public class Reloadable1<P, C> extends Reloadable<C> implements Observer<P> {
 
-    private final Function<P, C> transform;
+    private final Function2<P, Optional<C>, C> transform;
 
-    public Reloadable1(P currentParentValue, Function<P, C> transform) {
-        super(transform.apply(currentParentValue));
+    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, C> transform) {
+        super(transform.apply(currentParentValue, Optional.empty()));
         this.transform = transform;
     }
 
