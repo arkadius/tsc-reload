@@ -22,12 +22,11 @@ import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus
 import net.ceedubs.ficus.readers.ArbitraryTypeReader
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
-import pl.touk.tscreload.impl.ConfigsReloader
 
 class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
-  import JFunctionConversions._
-  import Ficus._
   import ArbitraryTypeReader._
+  import Ficus._
+  import JFunctionConversions._
 
   private val configFile = new File("target/foo.conf")
   
@@ -50,7 +49,7 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     writeValueToConfigFile(nextFooBarValue)
 
     Then("after reload nested value should be same as new value")
-    Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
     reloadableFooBar.currentValue() shouldEqual nextFooBarValue
   }
 
@@ -77,7 +76,7 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     writeValueToConfigFile(newBase)
 
     Then("after reload composed value should be recalculated")
-    Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
     reloadableComposed.currentValue() shouldEqual (newBase + leftDelta + newBase + rightDelta)
   }
 
@@ -114,7 +113,7 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     writeValueToConfigFile(nextFooBarValue)
 
     Then("after reload nested value should be same as new value")
-    Thread.sleep(ConfigsReloader.TICK_SECONDS * 1000 + 500)
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
     reloadableFoo.currentValue().bar shouldEqual nextFooBarValue
   }
 

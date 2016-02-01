@@ -22,20 +22,14 @@ import java.util.concurrent.TimeUnit;
 
 public class ConfigsReloader extends Observable<Instant> implements Runnable {
 
-    public static final int TICK_SECONDS = 1;
-
     public ConfigsReloader(int tickDelaySeconds) {
-        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(TICK_SECONDS);
+        final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this, tickDelaySeconds, tickDelaySeconds, TimeUnit.SECONDS);
-    }
-
-    public void add(ConfigObservable configProvider) {
-        addWeakListener(configProvider);
     }
 
     @Override
     public void run() {
-        notifyListeners(Instant.now());
+        notifyObservers(Instant.now());
     }
 
 }

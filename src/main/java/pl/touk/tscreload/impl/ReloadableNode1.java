@@ -17,7 +17,7 @@ package pl.touk.tscreload.impl;
 
 import java.util.function.Function;
 
-public class ReloadableNode1<P, C> extends AbstractReloadableNode<C> implements Listener<P> {
+public class ReloadableNode1<P, C> extends AbstractReloadableNode<C> implements Observer<P> {
 
     private final Function<P, C> transform;
 

@@ -21,17 +21,17 @@ import java.util.WeakHashMap;
 
 public abstract class Observable<T> {
 
-    private final Set<Listener<T>> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<Observer<T>> observers = Collections.newSetFromMap(new WeakHashMap<>());
 
-    public void addWeakListener(Listener<T> listener) {
-        synchronized (listeners) {
-            listeners.add(listener);
+    public void addWeakObserver(Observer<T> observer) {
+        synchronized (observers) {
+            observers.add(observer);
         }
     }
 
-    protected void notifyListeners(T changedValue) {
-        synchronized (listeners) {
-            listeners.forEach(l -> l.notifyChanged(changedValue));
+    protected void notifyObservers(T changedValue) {
+        synchronized (observers) {
+            observers.forEach(o -> o.notifyChanged(changedValue));
         }
     }
 

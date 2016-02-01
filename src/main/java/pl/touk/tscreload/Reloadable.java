@@ -36,8 +36,8 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r1.currentValue(),
                 r2.currentValue(),
                 f);
-        r1.addWeakListener(reloadable.listener1);
-        r2.addWeakListener(reloadable.listener2);
+        r1.addWeakObserver(reloadable.observer1);
+        r2.addWeakObserver(reloadable.observer2);
         return reloadable;
     }
 
@@ -50,9 +50,9 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r2.currentValue(),
                 r3.currentValue(),
                 f);
-        r1.addWeakListener(reloadable.listener1);
-        r2.addWeakListener(reloadable.listener2);
-        r3.addWeakListener(reloadable.listener3);
+        r1.addWeakObserver(reloadable.observer1);
+        r2.addWeakObserver(reloadable.observer2);
+        r3.addWeakObserver(reloadable.observer3);
         return reloadable;
     }
 
@@ -67,10 +67,10 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r3.currentValue(),
                 r4.currentValue(),
                 f);
-        r1.addWeakListener(reloadable.listener1);
-        r2.addWeakListener(reloadable.listener2);
-        r3.addWeakListener(reloadable.listener3);
-        r4.addWeakListener(reloadable.listener4);
+        r1.addWeakObserver(reloadable.observer1);
+        r2.addWeakObserver(reloadable.observer2);
+        r3.addWeakObserver(reloadable.observer3);
+        r4.addWeakObserver(reloadable.observer4);
         return reloadable;
     }
 
@@ -87,11 +87,11 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r4.currentValue(),
                 r5.currentValue(),
                 f);
-        r1.addWeakListener(reloadable.listener1);
-        r2.addWeakListener(reloadable.listener2);
-        r3.addWeakListener(reloadable.listener3);
-        r4.addWeakListener(reloadable.listener4);
-        r5.addWeakListener(reloadable.listener5);
+        r1.addWeakObserver(reloadable.observer1);
+        r2.addWeakObserver(reloadable.observer2);
+        r3.addWeakObserver(reloadable.observer3);
+        r4.addWeakObserver(reloadable.observer4);
+        r5.addWeakObserver(reloadable.observer5);
         return reloadable;
     }
 

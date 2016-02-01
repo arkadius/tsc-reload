@@ -51,7 +51,7 @@ public class ReloadableNode5<P1, P2, P3, P4, P5, C> extends AbstractReloadableNo
         this.currentParentValue5 = currentParentValue5;
     }
 
-    public Listener<P1> listener1 = new Listener<P1>() {
+    public Observer<P1> observer1 = new Observer<P1>() {
         @Override
         public void notifyChanged(P1 changedValue1) {
             synchronized (ReloadableNode5.this) {
@@ -66,7 +66,7 @@ public class ReloadableNode5<P1, P2, P3, P4, P5, C> extends AbstractReloadableNo
         }
     };
 
-    public Listener<P2> listener2 = new Listener<P2>() {
+    public Observer<P2> observer2 = new Observer<P2>() {
         @Override
         public void notifyChanged(P2 changedValue2) {
             synchronized (ReloadableNode5.this) {
@@ -81,7 +81,7 @@ public class ReloadableNode5<P1, P2, P3, P4, P5, C> extends AbstractReloadableNo
         }
     };
 
-    public Listener<P3> listener3 = new Listener<P3>() {
+    public Observer<P3> observer3 = new Observer<P3>() {
         @Override
         public void notifyChanged(P3 changedValue3) {
             synchronized (ReloadableNode5.this) {
@@ -96,7 +96,7 @@ public class ReloadableNode5<P1, P2, P3, P4, P5, C> extends AbstractReloadableNo
         }
     };
 
-    public Listener<P4> listener4 = new Listener<P4>() {
+    public Observer<P4> observer4 = new Observer<P4>() {
         @Override
         public void notifyChanged(P4 changedValue4) {
             synchronized (ReloadableNode5.this) {
@@ -111,7 +111,7 @@ public class ReloadableNode5<P1, P2, P3, P4, P5, C> extends AbstractReloadableNo
         }
     };
 
-    public Listener<P5> listener5 = new Listener<P5>() {
+    public Observer<P5> observer5 = new Observer<P5>() {
         @Override
         public void notifyChanged(P5 changedValue5) {
             synchronized (ReloadableNode5.this) {

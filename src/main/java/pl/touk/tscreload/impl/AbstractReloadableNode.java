@@ -29,13 +29,13 @@ public abstract class AbstractReloadableNode<C> extends Reloadable<C> {
 
     protected void updateCurrentValue(C newValue) {
         current = newValue;
-        notifyListeners(newValue);
+        notifyObservers(newValue);
     }
 
     @Override
     public <U> Reloadable<U> map(Function<C, U> f) {
         ReloadableNode1<C, U> child = new ReloadableNode1<>(current, f);
-        addWeakListener(child);
+        addWeakObserver(child);
         return child;
     }
 

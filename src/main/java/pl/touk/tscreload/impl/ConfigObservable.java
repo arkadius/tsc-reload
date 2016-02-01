@@ -23,38 +23,38 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Slf4j
-public class ConfigObservable extends Observable<Config> implements Listener<Instant>, ConfigProvider {
+public class ConfigObservable extends AbstractReloadableNode<Config> implements Observer<Instant> {
 
     private final List<File> scannedFiles;
 
-    private final ConfigProvider targetProvider;
-
     private final Duration checkInterval;
+
+    private final Supplier<Config> configSupplier;
 
     private volatile ConfigWithTimestamps configWithTimestamps;
 
-    public ConfigObservable(List<File> scannedFiles, ConfigProvider targetProvider, Duration checkInterval) {
+    public ConfigObservable(List<File> scannedFiles, Duration checkInterval, Supplier<Config> configSupplier) {
+        super(configSupplier.get());
         this.scannedFiles = scannedFiles;
-        this.targetProvider = targetProvider;
         this.checkInterval = checkInterval;
-        this.configWithTimestamps = new ConfigWithTimestamps(targetProvider.getConfig(), optionalLastModified().get(), Instant.now());
-    }
-
-    @Override
-    public Config getConfig() {
-        return configWithTimestamps.getConfig();
+        this.configSupplier = configSupplier;
+        this.configWithTimestamps = new ConfigWithTimestamps(configSupplier.get(), optionalLastModified().get(), Instant.now());
     }
 
     @Override
     public void notifyChanged(Instant now) {
         ConfigWithTimestamps current = configWithTimestamps;
         if (now.isAfter(current.getLastCheck().plus(checkInterval))) {
-            configWithTimestamps = optionalLastModified()
+            optionalLastModified()
                     .filter(lastModified -> lastModified.isAfter(current.getLastModified()))
                     .map(lastModifiedAfterCurrent -> invalidateCache(lastModifiedAfterCurrent, now))
-                    .orElseGet(() -> current.withLastCheck(now));
+                    .orElseGet(() -> {
+                        configWithTimestamps = current.withLastCheck(now);
+                        return null;
+                    });
         }
     }
 
@@ -65,11 +65,12 @@ public class ConfigObservable extends Observable<Config> implements Listener<Ins
                 .map(Instant::ofEpochMilli);
     }
 
-    private ConfigWithTimestamps invalidateCache(Instant lastModified, Instant lastCheck) {
+    private Void invalidateCache(Instant lastModified, Instant lastCheck) {
         log.debug("Found changes. Reloading configuration.");
-        Config newValue = targetProvider.getConfig();
-        notifyListeners(newValue);
-        return new ConfigWithTimestamps(newValue, lastModified, lastCheck);
+        Config newValue = configSupplier.get();
+        configWithTimestamps = new ConfigWithTimestamps(newValue, lastModified, lastCheck);
+        updateCurrentValue(newValue);
+        return null;
     }
 
 }

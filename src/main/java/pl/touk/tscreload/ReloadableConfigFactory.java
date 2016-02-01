@@ -18,41 +18,33 @@ package pl.touk.tscreload;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import pl.touk.tscreload.impl.ConfigObservable;
-import pl.touk.tscreload.impl.ConfigProviderImpl;
 import pl.touk.tscreload.impl.ConfigsReloader;
-import pl.touk.tscreload.impl.ReloadableNode1;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ReloadableConfigFactory {
 
-    private static final int TICK_DELAY_SECONDS = 1;
+    static final int TICK_SECONDS = 1;
 
-    private static ConfigsReloader reloader = new ConfigsReloader(TICK_DELAY_SECONDS);
+    private final static ConfigsReloader reloader = new ConfigsReloader(TICK_SECONDS);
 
     public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
-        ConfigProviderImpl configProvider = new ConfigProviderImpl(() -> ConfigFactory.parseFile(file));
-        return createReloadableRoot(Collections.singletonList(file), checkInterval, configProvider);
+        return load(
+                Collections.singletonList(file),
+                checkInterval,
+                () -> ConfigFactory.parseFile(file));
     }
 
-    public static Reloadable<Config> load(List<File> scannedFiles, Supplier<Config> loadConfig, Duration checkInterval) {
-        ConfigProviderImpl configProvider = new ConfigProviderImpl(loadConfig);
-        return createReloadableRoot(scannedFiles, checkInterval, configProvider);
-    }
-
-    private static Reloadable<Config> createReloadableRoot(List<File> scannedFiles,
-                                                           Duration checkInterval,
-                                                           ConfigProviderImpl configProvider) {
-        ConfigObservable cached = new ConfigObservable(scannedFiles, configProvider, checkInterval);
-        ReloadableNode1<Config, Config> reloadableRoot = new ReloadableNode1<>(cached.getConfig(), Function.identity());
-        cached.addWeakListener(reloadableRoot);
-        reloader.add(cached);
-        return reloadableRoot;
+    public static Reloadable<Config> load(List<File> scannedFiles,
+                                          Duration checkInterval,
+                                          Supplier<Config> loadConfig) {
+        ConfigObservable reloadableConfig = new ConfigObservable(scannedFiles, checkInterval, loadConfig);
+        reloader.addWeakObserver(reloadableConfig);
+        return reloadableConfig;
     }
 
 }
