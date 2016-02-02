@@ -35,7 +35,7 @@ public class ReloadableConfig extends Reloadable<Config> implements Observer<Ins
 
     private final Supplier<Config> configSupplier;
 
-    private volatile ConfigWithTimestamps configWithTimestamps;
+    private ConfigWithTimestamps configWithTimestamps;
 
     public ReloadableConfig(List<File> scannedFiles, Duration checkInterval, Supplier<Config> configSupplier) {
         super(configSupplier.get());
@@ -46,7 +46,7 @@ public class ReloadableConfig extends Reloadable<Config> implements Observer<Ins
     }
 
     @Override
-    public void notifyChanged(Instant now) {
+    public synchronized void notifyChanged(Instant now) {
         ConfigWithTimestamps current = configWithTimestamps;
         if (now.isAfter(current.getLastCheck().plus(checkInterval))) {
             optionalLastModified()
