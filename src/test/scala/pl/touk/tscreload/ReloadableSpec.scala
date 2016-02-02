@@ -18,20 +18,20 @@ package pl.touk.tscreload
 import java.io.{File, PrintWriter}
 import java.time.Duration
 import java.util.Optional
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus
 import net.ceedubs.ficus.readers.ArbitraryTypeReader
-import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
+import org.scalatest._
 
-class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
+class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
   import ArbitraryTypeReader._
   import Ficus._
   import JFunctionConversions._
-
-  private val configFile = new File("target/foo.conf")
   
-  it should "provide initial value" in {
+  it should "provide initial value" in { fixture =>
+    import fixture._
     When("load reloadable initial value")
     val initialFooBarValue = 1
     val reloadableFooBar = loadReloadableValue(initialFooBarValue)
@@ -40,7 +40,8 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     reloadableFooBar.currentValue() shouldEqual initialFooBarValue
   }
 
-  it should "reload nested value after change" in {
+  it should "reload nested value after change" in { fixture =>
+    import fixture._
     Given("reloadable initial value")
     val reloadableFooBar = loadReloadableValue(1)
 
@@ -54,7 +55,8 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     reloadableFooBar.currentValue() shouldEqual nextFooBarValue
   }
 
-  it should "reload composed value after change" in {
+  it should "reload composed value after change" in { fixture =>
+    import fixture._
     Given("reloadable initial values")
     val initialBase = 0
     val leftDelta = 1
@@ -81,7 +83,8 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     reloadableComposed.currentValue() shouldEqual (newBase + leftDelta + newBase + rightDelta)
   }
 
-  it should "cache evaluation of nested values" in {
+  it should "cache evaluation of nested values" in { fixture =>
+    import fixture._
     Given("reloadable initial config")
     val initialFooBarValue = 1
     val reloadable = loadReloadableConfig(initialFooBarValue)
@@ -101,14 +104,14 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     evaluationCount shouldEqual 1
   }
 
-
-  it should "be able to handle previous value" in {
+  it should "be able to handle previous value" in { fixture =>
+    import fixture._
     Given("reloadable initial config")
     val initialFooBarValue = 1
     val reloadable = loadReloadableConfig(initialFooBarValue)
 
     When("transform reloadable config to return nested value")
-    @volatile var savedPrev: Optional[Int] = null
+    var savedPrev: Optional[Int] = null
     val reloadableFooBar = reloadable.map[Int] { (cfg: Config, prev: Optional[Int]) =>
       savedPrev = prev
       cfg.getInt("foo.bar")
@@ -119,13 +122,45 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     Thread.sleep(1000) // for make sure that last modified was changed
     writeValueToConfigFile(newValue)
 
-    Then("after reload previous value should be the initial one")
+    Then("after reload first value should be the initial one")
     Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
     reloadableFooBar.currentValue() shouldEqual newValue
+    Then("second value should be the new one")
     savedPrev shouldEqual Optional.of(initialFooBarValue)
   }
 
-  it should "not reload nested value if was no changes in value" in {
+  it should "not break reload process if some child will throw exception" in { fixture =>
+    import fixture._
+    Given("reloadable initial config")
+    val initialFooBarValue = 1
+    val newValue = 2
+    val reloadable = loadReloadableConfig(initialFooBarValue)
+
+    When("transform reloadable config to return nested value")
+    val firstFooBar = reloadable.map { (cfg: Config) =>
+      val v = cfg.getInt("foo.bar")
+      if (v == newValue) throw new Exception("fail")
+      v
+    }
+    var secReloaded= false
+    val secFooBar = reloadable.map { (cfg: Config) =>
+      val v = cfg.getInt("foo.bar")
+      if (v == newValue) secReloaded = true
+      v
+    }
+
+    When("write new value to config file")
+    Thread.sleep(1000) // for make sure that last modified was changed
+    writeValueToConfigFile(newValue)
+
+    Then("after reload previous value should be the initial one")
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
+    firstFooBar.currentValue() shouldEqual initialFooBarValue
+    secFooBar.currentValue() shouldEqual newValue
+  }
+
+  it should "not reload nested value if was no changes in value" in { fixture =>
+    import fixture._
     Given("reloadable initial value")
     val initialValue = 1
     val reloadable = loadReloadableConfig(initialValue)
@@ -146,7 +181,8 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     evaluationCount shouldEqual 1
   }
 
-  it should "cooperate with ficus" in {
+  it should "cooperate with ficus" in { fixture =>
+    import fixture._
     Given("reloadable initial config")
     val initialFooBarValue = 1
     val reloadable = loadReloadableConfig(initialFooBarValue)
@@ -163,28 +199,38 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
     reloadableFoo.currentValue().bar shouldEqual nextFooBarValue
   }
 
-  private def loadReloadableValue(initialFooBarValue: Int): Reloadable[Int] = {
-    val reloadable = loadReloadableConfig(initialFooBarValue)
+  private val idx = new AtomicInteger(0)
 
-    reloadable.map((cfg: Config) => cfg.getInt("foo.bar"))
+  override protected def withFixture(test: OneArgTest): Outcome = {
+    test(FixtureParam(idx.incrementAndGet()))
   }
 
-  private def loadReloadableConfig(initialFooBarValue: Int): Reloadable[Config] = {
-    writeValueToConfigFile(initialFooBarValue)
+  case class FixtureParam(i: Int) {
+    val configFile = new File(s"target/foo_$i.conf")
 
-    ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
-  }
+    def loadReloadableValue(initialFooBarValue: Int): Reloadable[Int] = {
+      val reloadable = loadReloadableConfig(initialFooBarValue)
 
-  private def writeValueToConfigFile(value: Int) = {
-    val wrt = new PrintWriter(configFile, "UTF-8")
-    try {
-      wrt.write(
-        s"""foo {
-            | bar: $value
-            |}""".stripMargin)
-    } finally {
-      wrt.flush()
-      wrt.close()
+      reloadable.map((cfg: Config) => cfg.getInt("foo.bar"))
+    }
+
+    def loadReloadableConfig(initialFooBarValue: Int): Reloadable[Config] = {
+      writeValueToConfigFile(initialFooBarValue)
+
+      ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
+    }
+
+    def writeValueToConfigFile(value: Int) = {
+      val wrt = new PrintWriter(configFile, "UTF-8")
+      try {
+        wrt.write(
+          s"""foo {
+              | bar: $value
+              |}""".stripMargin)
+      } finally {
+        wrt.flush()
+        wrt.close()
+      }
     }
   }
 
