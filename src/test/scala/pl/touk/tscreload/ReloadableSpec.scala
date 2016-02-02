@@ -17,6 +17,7 @@ package pl.touk.tscreload
 
 import java.io.{File, PrintWriter}
 import java.time.Duration
+import java.util.Optional
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus
@@ -98,6 +99,30 @@ class ReloadableSpec extends FlatSpec with Matchers with GivenWhenThen {
 
     Then("value should be evaluated once")
     evaluationCount shouldEqual 1
+  }
+
+
+  it should "be able to handle previous value" in {
+    Given("reloadable initial config")
+    val initialFooBarValue = 1
+    val reloadable = loadReloadableConfig(initialFooBarValue)
+
+    When("transform reloadable config to return nested value")
+    @volatile var savedPrev: Optional[Int] = null
+    val reloadableFooBar = reloadable.map[Int] { (cfg: Config, prev: Optional[Int]) =>
+      savedPrev = prev
+      cfg.getInt("foo.bar")
+    }
+
+    When("write new value to config file")
+    val newValue = 2
+    Thread.sleep(1000) // for make sure that last modified was changed
+    writeValueToConfigFile(newValue)
+
+    Then("after reload previous value should be the initial one")
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
+    reloadableFooBar.currentValue() shouldEqual newValue
+    savedPrev shouldEqual Optional.of(initialFooBarValue)
   }
 
   it should "not reload nested value if was no changes in value" in {

@@ -24,8 +24,6 @@ import java.util.Optional;
 @Slf4j
 public abstract class Reloadable<T> extends Observable<T> {
 
-    private Optional<T> previous = Optional.empty();
-
     private T current;
 
     protected Reloadable(T current) {
@@ -44,9 +42,8 @@ public abstract class Reloadable<T> extends Observable<T> {
 
     protected synchronized void updateCurrentValue(Function1<Optional<T>, T> transform) {
         try {
-            T newValue = transform.apply(previous);
+            T newValue = transform.apply(Optional.of(current));
             if (!current.equals(newValue)) {
-                previous = Optional.of(current);
                 current = newValue;
                 notifyObservers(newValue);
             }
