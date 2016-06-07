@@ -31,7 +31,7 @@ Then you can also pass value to any place in your application. Value is wrapped 
 
 ## Interoperability
 
-This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code (please make notice that were used JFunctionConversions enable in test sources):
+This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code (please make notice that were used JFunctionConversions available in test sources):
 ```scala
 import pl.touk.tscreload._
 import java.time._
