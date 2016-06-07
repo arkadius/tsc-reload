@@ -31,7 +31,7 @@ Then you can also pass value to any place in your application. Value is wrapped 
 
 ## Interoperability
 
-This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code:
+This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code (please make notice that were used JFunctionConversions enable in test sources):
 ```scala
 import pl.touk.tscreload._
 import java.time._
@@ -41,7 +41,7 @@ import JFunctionConversions._
 
 case class Foo(bar: Int)
 
-val cfg = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30))
+val reloadable = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30))
 val reloadableFoo: Reloadable[Foo] = reloadable.map((cfg: Config) => cfg.as[Foo]("foo"))
 val configValue = reloadableFoo.currentValue().bar
 ```
