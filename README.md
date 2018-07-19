@@ -54,14 +54,14 @@ With maven:
 <dependency>
     <groupId>pl.touk</groupId>
     <artifactId>tsc-reload</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-reload" % "0.3.0"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.4.0"
 ```
 
 ## License

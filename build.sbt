@@ -4,7 +4,7 @@ import net.virtualvoid.sbt.graph.Plugin._
 import sbt.Keys._
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-val scalaV = "2.11.7"
+val scalaV = "2.11.12"
 
 graphSettings
 
@@ -27,13 +27,13 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   Seq(
-    "com.typesafe"      % "config"            % "1.3.0",
-    "com.javaslang"     % "javaslang"         % "2.0.0-RC3",
-    "org.slf4j"         % "slf4j-api"         % "1.7.12",
-    "org.projectlombok" % "lombok"            % "1.16.6"      % "provided",
-    "org.scalatest"    %% "scalatest"         % "3.0.0-M9"    % "test",
-    "ch.qos.logback"    % "logback-classic"   % "1.1.3"       % "test",
-    "com.iheart"       %% "ficus"             % "1.2.1"       % "test"
+    "com.typesafe"      % "config"            % "1.3.3",
+    "io.vavr"           % "vavr"              % "0.9.2",
+    "org.slf4j"         % "slf4j-api"         % "1.7.25",
+    "org.projectlombok" % "lombok"            % "1.16.22"     % "provided",
+    "org.scalatest"    %% "scalatest"         % "3.0.5"       % "test",
+    "ch.qos.logback"    % "logback-classic"   % "1.2.3"       % "test",
+    "com.iheart"       %% "ficus"             % "1.4.3"       % "test"
   )
 }
 

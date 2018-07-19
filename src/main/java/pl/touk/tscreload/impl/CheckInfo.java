@@ -15,21 +15,19 @@
  */
 package pl.touk.tscreload.impl;
 
+import lombok.Value;
+
 import java.time.Instant;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-public class ConfigsReloader extends Observable<Instant> implements Runnable {
+@Value
+class CheckInfo {
 
-    public ConfigsReloader(int tickDelaySeconds) {
-        final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this, tickDelaySeconds, tickDelaySeconds, TimeUnit.SECONDS);
-    }
+    private final Instant lastModified;
 
-    @Override
-    public void run() {
-        notifyObservers(Instant.now());
+    private final Instant lastCheck;
+
+    CheckInfo withLastCheck(Instant newLastCheck) {
+        return new CheckInfo(lastModified, newLastCheck);
     }
 
 }

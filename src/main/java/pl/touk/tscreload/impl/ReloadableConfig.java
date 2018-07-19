@@ -15,7 +15,6 @@
  */
 package pl.touk.tscreload.impl;
 
-import com.typesafe.config.Config;
 import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.Reloadable;
 
@@ -23,57 +22,55 @@ import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public class ReloadableConfig extends Reloadable<Config> implements Observer<Instant> {
+public class ReloadableConfig<T> extends Reloadable<T> implements Observer<Instant> {
 
     private final List<File> scannedFiles;
 
     private final Duration checkInterval;
 
-    private final Supplier<Config> configSupplier;
+    private final Supplier<T> configSupplier;
 
-    private ConfigWithTimestamps configWithTimestamps;
+    private CheckInfo checkInfo;
 
-    public ReloadableConfig(List<File> scannedFiles, Duration checkInterval, Supplier<Config> configSupplier) {
+    public ReloadableConfig(List<File> scannedFiles, Duration checkInterval, Supplier<T> configSupplier) {
         super(configSupplier.get());
         this.scannedFiles = scannedFiles;
         this.checkInterval = checkInterval;
         this.configSupplier = configSupplier;
-        this.configWithTimestamps = new ConfigWithTimestamps(configSupplier.get(), optionalLastModified().get(), Instant.now());
+        this.checkInfo = new CheckInfo(checkLastModified(), Instant.now());
     }
 
     @Override
     public synchronized void notifyChanged(Instant now) {
-        ConfigWithTimestamps current = configWithTimestamps;
-        if (now.isAfter(current.getLastCheck().plus(checkInterval))) {
-            optionalLastModified()
-                    .filter(lastModified -> lastModified.isAfter(current.getLastModified()))
-                    .map(lastModifiedAfterCurrent -> invalidateCache(lastModifiedAfterCurrent, now))
-                    .orElseGet(() -> {
-                        configWithTimestamps = current.withLastCheck(now);
-                        return null;
-                    });
+        CheckInfo lastCheckInfo = checkInfo;
+        if (now.isAfter(lastCheckInfo.getLastCheck().plus(checkInterval))) {
+            Instant lastModified = checkLastModified();
+            boolean invalidated = false;
+            if (lastModified.isAfter(lastCheckInfo.getLastModified())) {
+                invalidated = invalidateCache();
+            }
+            if (invalidated) {
+                checkInfo = new CheckInfo(lastModified, now);
+            } else {
+                checkInfo = lastCheckInfo.withLastCheck(now);
+            }
         }
     }
 
-    private Optional<Instant> optionalLastModified() {
+    private Instant checkLastModified() {
         return scannedFiles.stream()
                 .map(File::lastModified)
                 .max(Long::compare)
-                .map(Instant::ofEpochMilli);
+                .map(Instant::ofEpochMilli)
+                .orElseThrow(() -> new IllegalArgumentException("None files to scan specified."));
     }
 
-    private Void invalidateCache(Instant lastModified, Instant lastCheck) {
+    private boolean invalidateCache() {
         log.debug("Found changes. Reloading configuration.");
-        updateCurrentValue(prev -> {
-            Config newValue = configSupplier.get();
-            configWithTimestamps = new ConfigWithTimestamps(newValue, lastModified, lastCheck);
-            return newValue;
-        });
-        return null;
+        return updateCurrentValue(prev -> configSupplier.get());
     }
 
 }

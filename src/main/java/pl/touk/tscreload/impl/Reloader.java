@@ -15,27 +15,21 @@
  */
 package pl.touk.tscreload.impl;
 
-import com.typesafe.config.Config;
-import lombok.Getter;
-
 import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-@Getter
-class ConfigWithTimestamps {
+public class Reloader extends Observable<Instant> implements Runnable {
 
-    private final Config config;
-
-    private final Instant lastModified;
-
-    private final Instant lastCheck;
-
-    public ConfigWithTimestamps(Config config, Instant lastModified, Instant lastCheck) {
-        this.config = config;
-        this.lastModified = lastModified;
-        this.lastCheck = lastCheck;
+    public Reloader(int tickDelaySeconds) {
+        final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(this, tickDelaySeconds, tickDelaySeconds, TimeUnit.SECONDS);
     }
 
-    public ConfigWithTimestamps withLastCheck(Instant newLastCheck) {
-        return new ConfigWithTimestamps(config, lastModified, newLastCheck);
+    @Override
+    public void run() {
+        notifyObservers(Instant.now());
     }
+
 }

@@ -15,16 +15,15 @@
  */
 package pl.touk.tscreload;
 
-import javaslang.*;
+import io.vavr.*;
 import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.impl.*;
 
 import java.util.Optional;
 
-@Slf4j
 public abstract class Reloadable<T> extends Observable<T> {
 
-    private T current;
+    private volatile T current;
 
     protected Reloadable(T current) {
         this.current = current;
@@ -40,22 +39,20 @@ public abstract class Reloadable<T> extends Observable<T> {
         return child;
     }
 
-    protected synchronized void updateCurrentValue(Function1<Optional<T>, T> transform) {
-        try {
-            T newValue = transform.apply(Optional.of(current));
-            if (!current.equals(newValue)) {
-                current = newValue;
-                notifyObservers(newValue);
-            }
-        } catch (Exception ex) {
-            log.error("Exception while computing reloaded value. Propagation of changes for child nodes will be discarded.", ex);
+    protected synchronized boolean updateCurrentValue(Function1<Optional<T>, T> transform) {
+        boolean changed = false;
+        T newValue = transform.apply(Optional.of(current));
+        if (!current.equals(newValue)) {
+            current = newValue;
+            changed = true;
+            notifyObservers(newValue);
         }
+        return changed;
     }
 
-    public synchronized T currentValue() {
+    public T currentValue() {
         return current;
     }
-
 
     public static <R1, R2, U> Reloadable<U> compose(Reloadable<R1> r1,
                                                     Reloadable<R2> r2,

@@ -18,7 +18,7 @@ package pl.touk.tscreload;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import pl.touk.tscreload.impl.ReloadableConfig;
-import pl.touk.tscreload.impl.ConfigsReloader;
+import pl.touk.tscreload.impl.Reloader;
 
 import java.io.File;
 import java.time.Duration;
@@ -30,7 +30,7 @@ public class ReloadableConfigFactory {
 
     static final int TICK_SECONDS = 1;
 
-    private final static ConfigsReloader reloader = new ConfigsReloader(TICK_SECONDS);
+    private final static Reloader reloader = new Reloader(TICK_SECONDS);
 
     public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
         return load(
@@ -39,10 +39,10 @@ public class ReloadableConfigFactory {
                 () -> ConfigFactory.parseFile(file));
     }
 
-    public static Reloadable<Config> load(List<File> scannedFiles,
-                                          Duration checkInterval,
-                                          Supplier<Config> loadConfig) {
-        ReloadableConfig reloadableConfig = new ReloadableConfig(scannedFiles, checkInterval, loadConfig);
+    public static <T> Reloadable<T> load(List<File> scannedFiles,
+                                         Duration checkInterval,
+                                         Supplier<T> loadConfig) {
+        ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(scannedFiles, checkInterval, loadConfig);
         reloader.addWeakObserver(reloadableConfig);
         return reloadableConfig;
     }

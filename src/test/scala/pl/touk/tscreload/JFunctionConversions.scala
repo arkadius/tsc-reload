@@ -15,9 +15,12 @@
  */
 package pl.touk.tscreload
 
-import javaslang.{Function1 => JFunction1}
-import javaslang.{Function2 => JFunction2}
-import javaslang.{Function3 => JFunction3}
+import io.vavr.{Function1 => JFunction1}
+import io.vavr.{Function2 => JFunction2}
+import io.vavr.{Function3 => JFunction3}
+import io.vavr.{Function4 => JFunction4}
+import io.vavr.{Function5 => JFunction5}
+import io.vavr.{Function6 => JFunction6}
 
 import scala.language.implicitConversions
 
@@ -31,8 +34,24 @@ object JFunctionConversions {
     override def apply(p1: P1, p2: P2): R = f(p1, p2)
   }
 
-  implicit def toJavaFunction3[P1, P2, P3, R](f: Function3[P1, P2, P3, R]): JFunction3[P1, P2, P3, R] = new JFunction3[P1, P2, P3, R] {
-    override def apply(p1: P1, p2: P2, p3: P3): R = f(p1, p2, p3)
-  }
+  implicit def toJavaFunction3[P1, P2, P3, R](f: Function3[P1, P2, P3, R]): JFunction3[P1, P2, P3, R] =
+    new JFunction3[P1, P2, P3, R] {
+      override def apply(p1: P1, p2: P2, p3: P3): R = f(p1, p2, p3)
+    }
+
+  implicit def toJavaFunction4[P1, P2, P3, P4, R](f: Function4[P1, P2, P3, P4, R]): JFunction4[P1, P2, P3, P4, R] =
+    new JFunction4[P1, P2, P3, P4, R] {
+      override def apply(p1: P1, p2: P2, p3: P3, p4: P4): R = f(p1, p2, p3, p4)
+    }
+
+  implicit def toJavaFunction5[P1, P2, P3, P4, P5, R](f: Function5[P1, P2, P3, P4, P5, R]): JFunction5[P1, P2, P3, P4, P5, R] =
+    new JFunction5[P1, P2, P3, P4, P5, R] {
+      override def apply(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5): R = f(p1, p2, p3, p4, p5)
+    }
+
+  implicit def toJavaFunction6[P1, P2, P3, P4, P5, P6, R](f: Function6[P1, P2, P3, P4, P5, P6, R]): JFunction6[P1, P2, P3, P4, P5, P6, R] =
+    new JFunction6[P1, P2, P3, P4, P5, P6, R] {
+      override def apply(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6): R = f(p1, p2, p3, p4, p5, p6)
+    }
 
 }

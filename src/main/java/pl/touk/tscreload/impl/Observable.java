@@ -15,10 +15,13 @@
  */
 package pl.touk.tscreload.impl;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+@Slf4j
 public abstract class Observable<T> {
 
     private final Set<Observer<T>> observers = Collections.newSetFromMap(new WeakHashMap<>());
@@ -31,7 +34,13 @@ public abstract class Observable<T> {
 
     protected void notifyObservers(T changedValue) {
         synchronized (observers) {
-            observers.forEach(o -> o.notifyChanged(changedValue));
+            observers.forEach(o -> {
+                try {
+                    o.notifyChanged(changedValue);
+                } catch (Exception ex) {
+                    log.error("Exception while notify about changed value. Propagation of changes for child nodes will be discarded.", ex);
+                }
+            });
         }
     }
 

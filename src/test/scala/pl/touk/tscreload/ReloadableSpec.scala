@@ -91,7 +91,7 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
 
     When("transform reloadable config to return nested value")
     var evaluationCount = 0
-    val reloadableFooBar = reloadable.map { (cfg: Config) =>
+    val reloadableFooBar = reloadable.map { cfg: Config =>
       evaluationCount += 1
       cfg.getInt("foo.bar")
     }
@@ -137,13 +137,13 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
     val reloadable = loadReloadableConfig(initialFooBarValue)
 
     When("transform reloadable config to return nested value")
-    val firstFooBar = reloadable.map { (cfg: Config) =>
+    val firstFooBar = reloadable.map { cfg: Config =>
       val v = cfg.getInt("foo.bar")
       if (v == newValue) throw new Exception("fail")
       v
     }
     var secReloaded= false
-    val secFooBar = reloadable.map { (cfg: Config) =>
+    val secFooBar = reloadable.map { cfg: Config =>
       val v = cfg.getInt("foo.bar")
       if (v == newValue) secReloaded = true
       v
@@ -167,7 +167,7 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
 
     When("transform reloadable config to return nested value")
     var evaluationCount = 0
-    val reloadableFooBar = reloadable.map { (cfg: Config) =>
+    val reloadableFooBar = reloadable.map { cfg: Config =>
       evaluationCount += 1
       cfg.getInt("foo.bar")
     }
@@ -220,7 +220,7 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
       ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
     }
 
-    def writeValueToConfigFile(value: Int) = {
+    def writeValueToConfigFile(value: Int): Unit = {
       val wrt = new PrintWriter(configFile, "UTF-8")
       try {
         wrt.write(

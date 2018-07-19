@@ -15,7 +15,7 @@
  */
 package pl.touk.tscreload.impl;
 
-import javaslang.Function2;
+import io.vavr.Function2;
 import pl.touk.tscreload.Reloadable;
 
 import java.util.Optional;
