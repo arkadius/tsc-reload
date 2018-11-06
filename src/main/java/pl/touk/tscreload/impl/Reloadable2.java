@@ -30,8 +30,9 @@ public class Reloadable2<P1, P2, C> extends Reloadable<C> {
 
     public Reloadable2(P1 currentParentValue1,
                        P2 currentParentValue2,
-                       Function3<P1, P2, Optional<C>, C> transform) {
-        super(transform.apply(currentParentValue1, currentParentValue2, Optional.empty()));
+                       Function3<P1, P2, Optional<C>, C> transform,
+                       boolean propagateOnlyIfChanged) {
+        super(transform.apply(currentParentValue1, currentParentValue2, Optional.empty()), propagateOnlyIfChanged);
         this.transform = transform;
         this.currentParentValue1 = currentParentValue1;
         this.currentParentValue2 = currentParentValue2;

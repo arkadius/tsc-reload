@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.tscreload.impl;
+package pl.touk.tscreload;
 
-import lombok.Value;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
-import java.time.Instant;
+import java.io.File;
+import java.time.Duration;
+import java.util.Collections;
 
-@Value
-class CheckInfo {
+public class TscReloadableConfigFactory extends ReloadableConfigFactory {
 
-    private final Instant lastModified;
-
-    private final Instant lastCheck;
-
-    CheckInfo withLastModified(Instant newLastModified) {
-        return new CheckInfo(newLastModified, lastCheck);
-    }
-
-    CheckInfo withLastCheck(Instant newLastCheck) {
-        return new CheckInfo(lastModified, newLastCheck);
+    public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
+        return load(
+                Collections.singletonList(file),
+                checkInterval,
+                () -> ConfigFactory.parseFile(file));
     }
 
 }

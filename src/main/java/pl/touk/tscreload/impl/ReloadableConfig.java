@@ -15,6 +15,7 @@
  */
 package pl.touk.tscreload.impl;
 
+import io.vavr.Function1;
 import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.Reloadable;
 
@@ -22,7 +23,7 @@ import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Optional;
 
 @Slf4j
 public class ReloadableConfig<T> extends Reloadable<T> implements Observer<Instant> {
@@ -31,31 +32,36 @@ public class ReloadableConfig<T> extends Reloadable<T> implements Observer<Insta
 
     private final Duration checkInterval;
 
-    private final Supplier<T> configSupplier;
+    private final Function1<Optional<T>, T> transformConfig;
 
+    // protected by synchronized block
     private CheckInfo checkInfo;
 
-    public ReloadableConfig(List<File> scannedFiles, Duration checkInterval, Supplier<T> configSupplier) {
-        super(configSupplier.get());
+    public ReloadableConfig(List<File> scannedFiles, Duration checkInterval,
+                            Function1<Optional<T>, T> transformConfig, boolean propagateOnlyIfChanged) {
+        super(transformConfig.apply(Optional.empty()), propagateOnlyIfChanged);
         this.scannedFiles = scannedFiles;
         this.checkInterval = checkInterval;
-        this.configSupplier = configSupplier;
+        this.transformConfig = transformConfig;
         this.checkInfo = new CheckInfo(checkLastModified(), Instant.now());
     }
 
     @Override
     public synchronized void notifyChanged(Instant now) {
-        CheckInfo lastCheckInfo = checkInfo;
-        if (now.isAfter(lastCheckInfo.getLastCheck().plus(checkInterval))) {
-            Instant lastModified = checkLastModified();
-            boolean invalidated = false;
-            if (lastModified.isAfter(lastCheckInfo.getLastModified())) {
-                invalidated = invalidateCache();
-            }
-            if (invalidated) {
-                checkInfo = new CheckInfo(lastModified, now);
-            } else {
-                checkInfo = lastCheckInfo.withLastCheck(now);
+        if (now.isAfter(checkInfo.getLastCheck().plus(checkInterval))) {
+            try {
+                Instant lastModified = checkLastModified();
+                if (lastModified.isAfter(checkInfo.getLastModified())) {
+                    log.debug("Last modified time: " + lastModified + " is after previous saved: " + checkInfo.getLastModified() +
+                            ". Reloading configuration...");
+                    updateCurrentValue(transformConfig);
+                    checkInfo = checkInfo.withLastModified(lastModified);
+                }
+            } catch (Exception e) {
+                log.error("Error while loading config, will check next time in " + checkInterval, e);
+                throw e;
+            } finally {
+                checkInfo = checkInfo.withLastCheck(now);
             }
         }
     }
@@ -66,11 +72,6 @@ public class ReloadableConfig<T> extends Reloadable<T> implements Observer<Insta
                 .max(Long::compare)
                 .map(Instant::ofEpochMilli)
                 .orElseThrow(() -> new IllegalArgumentException("None files to scan specified."));
-    }
-
-    private boolean invalidateCache() {
-        log.debug("Found changes. Reloading configuration.");
-        return updateCurrentValue(prev -> configSupplier.get());
     }
 
 }

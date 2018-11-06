@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/TouK/tsc-reload.svg)](https://travis-ci.org/TouK/tsc-reload)
 
-*tsc-reload* is a TypeSafe config wrapper for automatic reloadable configuration
+*tsc-reload* is a tiny library in java that can be used for configuration reloading. In basic usage it wraps *TypeSafe config* but it is only an optional dependency and can be used with any configuration parsing approach.
 
 ## Overview
 
-When you use plain *TypeSafe* config, you probably load config on bootstrap phase of your project. When configuration content will change, you need to restart your application. Thanks to *tsc-reload*, you decide when you want to use current value from configuration.
+When you use plain *TypeSafe config*, you probably load config on bootstrap phase of your project. When configuration content will change, you need to restart your application. Thanks to *tsc-reload*, you decide when you want to use current value from configuration.
 
-Sample *TypeSafe* config usage code:
+Sample *TypeSafe config* usage code:
 ```java
 import com.typesafe.config.*
 
@@ -24,14 +24,14 @@ import pl.touk.tscreload.*;
 import com.typesafe.config.Config;
 import java.time.*;
 
-Reloadable<Config> cfg = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30));
+Reloadable<Config> cfg = TscReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30));
 Reloadable<Integer> configValue = cfg.map(c -> c.getInt("foo.bar"));
 ```
 Then you can also pass value to any place in your application. Value is wrapped in reloadable context. You decide when you want to read current value invoking `configValue.currentValue()`. You can add any transformations to `Reloadable<T>` using `map` method e.g. wrap values with own configuration or use other lib which covert `Config` to something else.
 
 ## Interoperability
 
-This lib is just a thin wrapper for *TypeSafe* config wirtten in *Java*. You still can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code (please make notice that were used JFunctionConversions available in test sources):
+You can mix it with other libs like e.g. [Ficus](https://github.com/ceedubs/ficus). Example code in scala (please make notice that there were used JFunctionConversions available in test sources):
 ```scala
 import pl.touk.tscreload._
 import java.time._
@@ -41,7 +41,7 @@ import JFunctionConversions._
 
 case class Foo(bar: Int)
 
-val reloadable = ReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30))
+val reloadable = TscReloadableConfigFactory.parseFile("config.conf", Duration.ofSeconds(30))
 val reloadableFoo: Reloadable[Foo] = reloadable.map((cfg: Config) => cfg.as[Foo]("foo"))
 val configValue = reloadableFoo.currentValue().bar
 ```
@@ -54,15 +54,23 @@ With maven:
 <dependency>
     <groupId>pl.touk</groupId>
     <artifactId>tsc-reload</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
+</dependency>
+<dependency>
+    <groupId>com.typesafe</groupId>
+    <artifactId>config</artifactId>
+    <version>1.3.3</version>
 </dependency>
 ```
 
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-reload" % "0.4.0"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.5.0"
+libraryDependencies += "com.typesafe" % "config" % "1.3.3"
 ```
+
+If you want to use it with other config parser than *TypeSafe config*, just skip the second line.
 
 ## License
 

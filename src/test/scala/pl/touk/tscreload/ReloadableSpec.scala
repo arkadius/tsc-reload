@@ -20,7 +20,7 @@ import java.time.Duration
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import net.ceedubs.ficus.Ficus
 import net.ceedubs.ficus.readers.ArbitraryTypeReader
 import org.scalatest._
@@ -29,7 +29,8 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
   import ArbitraryTypeReader._
   import Ficus._
   import JFunctionConversions._
-  
+  import collection.convert.decorateAsJava._
+
   it should "provide initial value" in { fixture =>
     import fixture._
     When("load reloadable initial value")
@@ -181,6 +182,28 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
     evaluationCount shouldEqual 1
   }
 
+  it should "reload nested value even if was no changes in value when such option is enabledd" in { fixture =>
+    import fixture._
+    Given("reloadable initial value")
+    val initialValue = 1
+    val reloadable = loadReloadableConfig(initialValue, propagateOnlyIfChanged = false)
+
+    When("transform reloadable config to return nested value")
+    var evaluationCount = 0
+    val reloadableFooBar = reloadable.map { cfg: Config =>
+      evaluationCount += 1
+      cfg.getInt("foo.bar")
+    }
+
+    When("write the same value to config file")
+    Thread.sleep(1000) // for make sure that last modified was changed
+    writeValueToConfigFile(initialValue)
+
+    Then("after reload nested value should be same as new value")
+    Thread.sleep(ReloadableConfigFactory.TICK_SECONDS * 1000 + 500)
+    evaluationCount shouldEqual 2
+  }
+
   it should "cooperate with ficus" in { fixture =>
     import fixture._
     Given("reloadable initial config")
@@ -214,10 +237,14 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
       reloadable.map((cfg: Config) => cfg.getInt("foo.bar"))
     }
 
-    def loadReloadableConfig(initialFooBarValue: Int): Reloadable[Config] = {
+    def loadReloadableConfig(initialFooBarValue: Int, propagateOnlyIfChanged: Boolean = true): Reloadable[Config] = {
       writeValueToConfigFile(initialFooBarValue)
 
-      ReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
+      if (propagateOnlyIfChanged)
+        TscReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
+      else
+        ReloadableConfigFactory.load(List(configFile).asJava, Duration.ofSeconds(0),
+          (prev: Optional[Config]) => ConfigFactory.parseFile(configFile), false)
     }
 
     def writeValueToConfigFile(value: Int): Unit = {

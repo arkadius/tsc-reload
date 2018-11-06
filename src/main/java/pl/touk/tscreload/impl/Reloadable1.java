@@ -24,8 +24,8 @@ public class Reloadable1<P, C> extends Reloadable<C> implements Observer<P> {
 
     private final Function2<P, Optional<C>, C> transform;
 
-    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, C> transform) {
-        super(transform.apply(currentParentValue, Optional.empty()));
+    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, C> transform, boolean propagateOnlyIfChanged) {
+        super(transform.apply(currentParentValue, Optional.empty()), propagateOnlyIfChanged);
         this.transform = transform;
     }
 

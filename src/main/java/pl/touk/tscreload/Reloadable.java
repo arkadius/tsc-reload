@@ -16,7 +16,6 @@
 package pl.touk.tscreload;
 
 import io.vavr.*;
-import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.impl.*;
 
 import java.util.Optional;
@@ -25,8 +24,14 @@ public abstract class Reloadable<T> extends Observable<T> {
 
     private volatile T current;
 
-    protected Reloadable(T current) {
+    // Propagation can cause heavy computation in children or would be not expected - e.g. if all changes are audited
+    // but on the other hand, checking if was change could by also heavy. For this reasons it is configurable.
+    // To not obfuscate transformers signatures, for children it is computed as a logical sum.
+    private boolean propagateOnlyIfChanged;
+
+    protected Reloadable(T current, boolean propagateOnlyIfChanged) {
         this.current = current;
+        this.propagateOnlyIfChanged = propagateOnlyIfChanged;
     }
 
     public <U> Reloadable<U> map(Function1<T, U> f) {
@@ -34,20 +39,17 @@ public abstract class Reloadable<T> extends Observable<T> {
     }
 
     public <U> Reloadable<U> map(Function2<T, Optional<U>, U> f) {
-        Reloadable1<T, U> child = new Reloadable1<>(currentValue(), f);
+        Reloadable1<T, U> child = new Reloadable1<>(currentValue(), f, propagateOnlyIfChanged);
         addWeakObserver(child);
         return child;
     }
 
-    protected synchronized boolean updateCurrentValue(Function1<Optional<T>, T> transform) {
-        boolean changed = false;
+    protected synchronized void updateCurrentValue(Function1<Optional<T>, T> transform) {
         T newValue = transform.apply(Optional.of(current));
-        if (!current.equals(newValue)) {
+        if (!propagateOnlyIfChanged || !current.equals(newValue)) {
             current = newValue;
-            changed = true;
             notifyObservers(newValue);
         }
-        return changed;
     }
 
     public T currentValue() {
@@ -66,7 +68,8 @@ public abstract class Reloadable<T> extends Observable<T> {
         Reloadable2<R1, R2, U> reloadable = new Reloadable2<>(
                 r1.currentValue(),
                 r2.currentValue(),
-                f);
+                f,
+                r1.propagateOnlyIfChanged && r2.propagateOnlyIfChanged);
         r1.addWeakObserver(reloadable.observer1);
         r2.addWeakObserver(reloadable.observer2);
         return reloadable;
@@ -87,7 +90,8 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r1.currentValue(),
                 r2.currentValue(),
                 r3.currentValue(),
-                f);
+                f,
+                r1.propagateOnlyIfChanged && r2.propagateOnlyIfChanged && r3.propagateOnlyIfChanged);
         r1.addWeakObserver(reloadable.observer1);
         r2.addWeakObserver(reloadable.observer2);
         r3.addWeakObserver(reloadable.observer3);
@@ -113,7 +117,9 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r2.currentValue(),
                 r3.currentValue(),
                 r4.currentValue(),
-                f);
+                f,
+                r1.propagateOnlyIfChanged && r2.propagateOnlyIfChanged
+                        && r3.propagateOnlyIfChanged && r4.propagateOnlyIfChanged);
         r1.addWeakObserver(reloadable.observer1);
         r2.addWeakObserver(reloadable.observer2);
         r3.addWeakObserver(reloadable.observer3);
@@ -142,7 +148,9 @@ public abstract class Reloadable<T> extends Observable<T> {
                 r3.currentValue(),
                 r4.currentValue(),
                 r5.currentValue(),
-                f);
+                f,
+                r1.propagateOnlyIfChanged && r2.propagateOnlyIfChanged
+                        && r3.propagateOnlyIfChanged && r4.propagateOnlyIfChanged && r5.propagateOnlyIfChanged);
         r1.addWeakObserver(reloadable.observer1);
         r2.addWeakObserver(reloadable.observer2);
         r3.addWeakObserver(reloadable.observer3);

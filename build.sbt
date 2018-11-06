@@ -27,7 +27,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   Seq(
-    "com.typesafe"      % "config"            % "1.3.3",
+    "com.typesafe"      % "config"            % "1.3.3"       % "optional",
     "io.vavr"           % "vavr"              % "0.9.2",
     "org.slf4j"         % "slf4j-api"         % "1.7.25",
     "org.projectlombok" % "lombok"            % "1.16.22"     % "provided",

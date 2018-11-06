@@ -15,15 +15,14 @@
  */
 package pl.touk.tscreload;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import io.vavr.Function1;
 import pl.touk.tscreload.impl.ReloadableConfig;
 import pl.touk.tscreload.impl.Reloader;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ReloadableConfigFactory {
@@ -32,17 +31,18 @@ public class ReloadableConfigFactory {
 
     private final static Reloader reloader = new Reloader(TICK_SECONDS);
 
-    public static Reloadable<Config> parseFile(File file, Duration checkInterval) {
-        return load(
-                Collections.singletonList(file),
-                checkInterval,
-                () -> ConfigFactory.parseFile(file));
+    public static <T> Reloadable<T> load(List<File> scannedFiles,
+                                         Duration checkInterval,
+                                         Supplier<T> loadConfig) {
+        return load(scannedFiles, checkInterval, (prev) -> loadConfig.get(), true);
     }
 
     public static <T> Reloadable<T> load(List<File> scannedFiles,
                                          Duration checkInterval,
-                                         Supplier<T> loadConfig) {
-        ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(scannedFiles, checkInterval, loadConfig);
+                                         Function1<Optional<T>, T> transformConfig,
+                                         boolean propagateOnlyIfChanged) {
+        ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(
+                scannedFiles, checkInterval, transformConfig, propagateOnlyIfChanged);
         reloader.addWeakObserver(reloadableConfig);
         return reloadableConfig;
     }
