@@ -17,7 +17,8 @@ package pl.touk.tscreload.impl;
 
 import io.vavr.Function1;
 import lombok.extern.slf4j.Slf4j;
-import pl.touk.tscreload.Reloadable;
+import pl.touk.tscreload.TimeTriggeredReloadable;
+import pl.touk.tscreload.TransformationResult;
 
 import java.io.File;
 import java.time.Duration;
@@ -26,43 +27,29 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-public class ReloadableConfig<T> extends Reloadable<T> implements Observer<Instant> {
+public class ReloadableConfig<T> extends TimeTriggeredReloadable<T> {
 
     private final List<File> scannedFiles;
 
-    private final Duration checkInterval;
-
-    private final Function1<Optional<T>, T> transformConfig;
-
-    // protected by synchronized block
-    private CheckInfo checkInfo;
+    // protected by synchronized block - see TimeTriggeredReloadable.notifyChanged
+    private Instant savedLastModified;
 
     public ReloadableConfig(List<File> scannedFiles, Duration checkInterval,
-                            Function1<Optional<T>, T> transformConfig, boolean propagateOnlyIfChanged) {
-        super(transformConfig.apply(Optional.empty()), propagateOnlyIfChanged);
+                            Function1<Optional<T>, TransformationResult<T>> transformConfig) {
+        super(transformConfig.apply(Optional.empty()).getValue(), Instant.now(), checkInterval,
+                (now, prev) -> transformConfig.apply(prev));
         this.scannedFiles = scannedFiles;
-        this.checkInterval = checkInterval;
-        this.transformConfig = transformConfig;
-        this.checkInfo = new CheckInfo(checkLastModified(), Instant.now());
+        this.savedLastModified = checkLastModified();
     }
 
     @Override
-    public synchronized void notifyChanged(Instant now) {
-        if (now.isAfter(checkInfo.getLastCheck().plus(checkInterval))) {
-            try {
-                Instant lastModified = checkLastModified();
-                if (lastModified.isAfter(checkInfo.getLastModified())) {
-                    log.debug("Last modified time: " + lastModified + " is after previous saved: " + checkInfo.getLastModified() +
-                            ". Reloading configuration...");
-                    updateCurrentValue(transformConfig);
-                    checkInfo = checkInfo.withLastModified(lastModified);
-                }
-            } catch (Exception e) {
-                log.error("Error while loading config, will check next time in " + checkInterval, e);
-                throw e;
-            } finally {
-                checkInfo = checkInfo.withLastCheck(now);
-            }
+    protected void handleTimeTrigger(Instant now) {
+        Instant currentLastModified = checkLastModified();
+        if (currentLastModified.isAfter(savedLastModified)) {
+            log.debug("Last modified time: " + currentLastModified + " is after previous saved: " + savedLastModified +
+                    ". Reloading configuration...");
+            updateCurrentValueWithTransformed(now);
+            savedLastModified = currentLastModified;
         }
     }
 

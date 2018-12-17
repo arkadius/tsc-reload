@@ -17,21 +17,24 @@ package pl.touk.tscreload.impl;
 
 import io.vavr.Function2;
 import pl.touk.tscreload.Reloadable;
+import pl.touk.tscreload.TransformationResult;
 
 import java.util.Optional;
 
 public class Reloadable1<P, C> extends Reloadable<C> implements Observer<P> {
 
-    private final Function2<P, Optional<C>, C> transform;
+    private final Function2<P, Optional<C>, TransformationResult<C>> transform;
 
-    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, C> transform, boolean propagateOnlyIfChanged) {
-        super(transform.apply(currentParentValue, Optional.empty()), propagateOnlyIfChanged);
+    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, TransformationResult<C>> transform) {
+        super(transform.apply(
+                currentParentValue,
+                Optional.empty()).getValue());
         this.transform = transform;
     }
 
     @Override
-    public void notifyChanged(P changedParentValue) {
-        updateCurrentValue(transform.apply(changedParentValue));
+    public void notifyChanged(P parentValue) {
+        updateCurrentValue(transform.apply(parentValue));
     }
 
 }

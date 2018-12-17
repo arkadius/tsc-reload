@@ -115,7 +115,7 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
     var savedPrev: Optional[Int] = null
     val reloadableFooBar = reloadable.map[Int] { (cfg: Config, prev: Optional[Int]) =>
       savedPrev = prev
-      cfg.getInt("foo.bar")
+      new TransformationResult(cfg.getInt("foo.bar"), true)
     }
 
     When("write new value to config file")
@@ -244,7 +244,7 @@ class ReloadableSpec extends fixture.FlatSpec with Matchers with GivenWhenThen {
         TscReloadableConfigFactory.parseFile(configFile, Duration.ofSeconds(0))
       else
         ReloadableConfigFactory.load(List(configFile).asJava, Duration.ofSeconds(0),
-          (prev: Optional[Config]) => ConfigFactory.parseFile(configFile), false)
+          (prev: Optional[Config]) => new TransformationResult(ConfigFactory.parseFile(configFile), true))
     }
 
     def writeValueToConfigFile(value: Int): Unit = {

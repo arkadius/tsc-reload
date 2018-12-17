@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.tscreload.impl;
+package pl.touk.tscreload;
 
 import lombok.Value;
 
-import java.time.Instant;
+import java.util.Optional;
 
 @Value
-class CheckInfo {
+public class TransformationResult<T> {
 
-    private final Instant lastModified;
+    private T value;
 
-    private final Instant lastCheck;
+    private boolean propagateChange;
 
-    CheckInfo withLastModified(Instant newLastModified) {
-        return new CheckInfo(newLastModified, lastCheck);
-    }
-
-    CheckInfo withLastCheck(Instant newLastCheck) {
-        return new CheckInfo(lastModified, newLastCheck);
+    public static <U> TransformationResult<U> withPropagateChangeWhenValueChanged(Optional<U> optionalPrevValue, U newValue) {
+        return new TransformationResult<>(
+                newValue,
+                !optionalPrevValue.isPresent() || !newValue.equals(optionalPrevValue.get()));
     }
 
 }

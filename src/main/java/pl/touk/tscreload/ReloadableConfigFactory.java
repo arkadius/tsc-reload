@@ -16,11 +16,13 @@
 package pl.touk.tscreload;
 
 import io.vavr.Function1;
+import pl.touk.tscreload.impl.Observer;
 import pl.touk.tscreload.impl.ReloadableConfig;
 import pl.touk.tscreload.impl.Reloader;
 
 import java.io.File;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -34,17 +36,27 @@ public class ReloadableConfigFactory {
     public static <T> Reloadable<T> load(List<File> scannedFiles,
                                          Duration checkInterval,
                                          Supplier<T> loadConfig) {
-        return load(scannedFiles, checkInterval, (prev) -> loadConfig.get(), true);
+        return load(scannedFiles, checkInterval,
+                (prev) -> TransformationResult.withPropagateChangeWhenValueChanged(prev, loadConfig.get()));
     }
 
     public static <T> Reloadable<T> load(List<File> scannedFiles,
                                          Duration checkInterval,
-                                         Function1<Optional<T>, T> transformConfig,
-                                         boolean propagateOnlyIfChanged) {
-        ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(
-                scannedFiles, checkInterval, transformConfig, propagateOnlyIfChanged);
+                                         Function1<Optional<T>, TransformationResult<T>> transformConfig) {
+        ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(scannedFiles, checkInterval, transformConfig);
         reloader.addWeakObserver(reloadableConfig);
         return reloadableConfig;
+    }
+
+    public static Reloadable<Instant> addTickPropagator(Duration checkInterval) {
+        TimeTriggeredReloadable<Instant> propagator = TimeTriggeredReloadable.propagatingTicks(Instant.now(), checkInterval);
+        addTickObserver(propagator);
+        return propagator;
+    }
+
+    public static <T extends Observer<Instant>> T addTickObserver(T observer) {
+        reloader.addWeakObserver(observer);
+        return observer;
     }
 
 }

@@ -54,7 +54,7 @@ With maven:
 <dependency>
     <groupId>pl.touk</groupId>
     <artifactId>tsc-reload</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 <dependency>
     <groupId>com.typesafe</groupId>
@@ -66,7 +66,7 @@ With maven:
 With sbt:
 
 ```sbt
-libraryDependencies += "pl.touk" % "tsc-reload" % "0.5.0"
+libraryDependencies += "pl.touk" % "tsc-reload" % "0.6.0"
 libraryDependencies += "com.typesafe" % "config" % "1.3.3"
 ```
 
