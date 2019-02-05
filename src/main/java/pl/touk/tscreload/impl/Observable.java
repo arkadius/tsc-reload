@@ -28,12 +28,20 @@ public abstract class Observable<T> {
 
     public void addWeakObserver(Observer<T> observer) {
         synchronized (observers) {
+            // We are adding hard reference to ensure that chain won't be breaked
+            observer.addParent(this);
             observers.add(observer);
+            if (!observers.isEmpty()) {
+                log.trace("{} Added observer {}. Current observer count: {}", this, observer, observers.size());
+            }
         }
     }
 
     protected void notifyObservers(T changedValue) {
         synchronized (observers) {
+            if (!observers.isEmpty()) {
+                log.trace("{} Notifying {} observers...", this, observers.size());
+            }
             observers.forEach(o -> {
                 try {
                     o.notifyChanged(changedValue);

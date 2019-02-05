@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 
 public class ReloadableConfigFactory {
 
-    static final int TICK_SECONDS = 1;
+    static final int TICK_SECONDS = 5;
 
     private final static Reloader reloader = new Reloader(TICK_SECONDS);
 
@@ -44,7 +44,7 @@ public class ReloadableConfigFactory {
                                          Duration checkInterval,
                                          Function1<Optional<T>, TransformationResult<T>> transformConfig) {
         ReloadableConfig<T> reloadableConfig = new ReloadableConfig<>(scannedFiles, checkInterval, transformConfig);
-        reloader.addWeakObserver(reloadableConfig);
+        addTickObserver(reloadableConfig);
         return reloadableConfig;
     }
 

@@ -42,7 +42,7 @@ public class Reloadable2<P1, P2, C> extends Reloadable<C> {
         this.currentParentValue2 = currentParentValue2;
     }
 
-    public Observer<P1> observer1 = new Observer<P1>() {
+    public Observer<P1> observer1 = new AbstractObserver<P1>() {
         @Override
         public void notifyChanged(P1 parentValue1) {
             Reloadable2.this.updateCurrentValue(prev -> {
@@ -53,7 +53,7 @@ public class Reloadable2<P1, P2, C> extends Reloadable<C> {
         }
     };
 
-    public Observer<P2> observer2 = new Observer<P2>() {
+    public Observer<P2> observer2 = new AbstractObserver<P2>() {
         @Override
         public void notifyChanged(P2 parentValue2) {
             Reloadable2.this.updateCurrentValue(prev -> {

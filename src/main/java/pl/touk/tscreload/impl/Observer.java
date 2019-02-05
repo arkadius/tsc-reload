@@ -16,5 +16,10 @@
 package pl.touk.tscreload.impl;
 
 public interface Observer<T> {
+
+    // this method is to ensure that chain of weak references won't be breaked
+    void addParent(Observable<?> observable);
+
     void notifyChanged(T changedValue);
+
 }

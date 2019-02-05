@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ReloadableConfig<T> extends TimeTriggeredReloadable<T> {
@@ -45,9 +46,16 @@ public class ReloadableConfig<T> extends TimeTriggeredReloadable<T> {
     @Override
     protected void handleTimeTrigger(Instant now) {
         Instant currentLastModified = checkLastModified();
+        if (log.isTraceEnabled()) {
+            String fileNames = scannedFiles.stream().map(File::getPath).collect(Collectors.joining(", "));
+            log.trace("{} Last modified for files {}: {}. Previous saved is: {}", this, fileNames, currentLastModified, savedLastModified);
+        }
         if (currentLastModified.isAfter(savedLastModified)) {
-            log.debug("Last modified time: " + currentLastModified + " is after previous saved: " + savedLastModified +
-                    ". Reloading configuration...");
+            if (log.isDebugEnabled()) {
+                String fileNames = scannedFiles.stream().map(File::getPath).collect(Collectors.joining(", "));
+                log.debug("Last modified time for files {}: {} is after previous saved: {}. Reloading configuration...",
+                        fileNames, currentLastModified, savedLastModified);
+            }
             updateCurrentValueWithTransformed(now);
             savedLastModified = currentLastModified;
         }

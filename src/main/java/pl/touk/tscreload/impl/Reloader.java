@@ -18,18 +18,25 @@ package pl.touk.tscreload.impl;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class Reloader extends Observable<Instant> implements Runnable {
+public class Reloader extends Observable<Instant> {
+
+    private final ScheduledFuture<?> scheduledFuture;
 
     public Reloader(int tickDelaySeconds) {
         final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this, tickDelaySeconds, tickDelaySeconds, TimeUnit.SECONDS);
+        scheduledFuture = scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                notifyObservers(Instant.now());
+            }
+        }, tickDelaySeconds, tickDelaySeconds, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void run() {
-        notifyObservers(Instant.now());
+    public void cancel(boolean mayInterruptIfRunning) {
+        scheduledFuture.cancel(mayInterruptIfRunning);
     }
 
 }

@@ -17,14 +17,20 @@ package pl.touk.tscreload;
 
 import io.vavr.Function2;
 import lombok.extern.slf4j.Slf4j;
+import pl.touk.tscreload.impl.Observable;
 import pl.touk.tscreload.impl.Observer;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 public class TimeTriggeredReloadable<T> extends Reloadable<T> implements Observer<Instant> {
+
+    private final Set<Observable<?>> parents = Collections.synchronizedSet(new HashSet<>());
 
     private final Duration checkInterval;
 
@@ -48,7 +54,13 @@ public class TimeTriggeredReloadable<T> extends Reloadable<T> implements Observe
     }
 
     @Override
+    public void addParent(Observable<?> observable) {
+        parents.add(observable);
+    }
+
+    @Override
     public synchronized void notifyChanged(Instant now) {
+        log.trace("{} Saved last check: {}, now: {}, checkInterval: {}", this, lastCheck, now, checkInterval);
         if (now.isAfter(lastCheck.plus(checkInterval))) {
             try {
                 handleTimeTrigger(now);

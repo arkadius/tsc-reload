@@ -15,36 +15,17 @@
  */
 package pl.touk.tscreload.impl;
 
-import io.vavr.Function2;
-import pl.touk.tscreload.Reloadable;
-import pl.touk.tscreload.TransformationResult;
-
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
-public class Reloadable1<P, C> extends Reloadable<C> implements Observer<P> {
+public abstract class AbstractObserver<T> implements Observer<T> {
 
     private final Set<Observable<?>> parents = Collections.synchronizedSet(new HashSet<>());
-
-    private final Function2<P, Optional<C>, TransformationResult<C>> transform;
-
-    public Reloadable1(P currentParentValue, Function2<P, Optional<C>, TransformationResult<C>> transform) {
-        super(transform.apply(
-                currentParentValue,
-                Optional.empty()).getValue());
-        this.transform = transform;
-    }
 
     @Override
     public void addParent(Observable<?> observable) {
         parents.add(observable);
-    }
-
-    @Override
-    public void notifyChanged(P parentValue) {
-        updateCurrentValue(transform.apply(parentValue));
     }
 
 }

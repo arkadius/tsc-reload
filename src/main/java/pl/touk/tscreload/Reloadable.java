@@ -16,12 +16,14 @@
 package pl.touk.tscreload;
 
 import io.vavr.*;
+import lombok.extern.slf4j.Slf4j;
 import pl.touk.tscreload.impl.*;
 
 import java.util.Optional;
 
 import static pl.touk.tscreload.TransformationResult.withPropagateChangeWhenValueChanged;
 
+@Slf4j
 public abstract class Reloadable<T> extends Observable<T> {
 
     private volatile T current;
@@ -32,6 +34,9 @@ public abstract class Reloadable<T> extends Observable<T> {
 
     protected synchronized void updateCurrentValue(Function1<Optional<T>, TransformationResult<T>> transform) {
         TransformationResult<T> transformationResult = transform.apply(Optional.of(current));
+        if (log.isTraceEnabled()) {
+            log.trace("{} Updating current value. Change {} be propagated.", this, (transformationResult.isPropagateChange() ? "will" : "won't"));
+        }
         current = transformationResult.getValue();
         if (transformationResult.isPropagateChange())
             notifyObservers(transformationResult.getValue());
