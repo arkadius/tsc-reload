@@ -19,12 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.HashMap;
 
 @Slf4j
 public abstract class Observable<T> {
 
-    private final Set<Observer<T>> observers = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<Observer<T>> observers = Collections.newSetFromMap(new HashMap<>());
 
     public void addWeakObserver(Observer<T> observer) {
         synchronized (observers) {
